@@ -1,0 +1,6 @@
+main: "cz.cloudy.minecraft.messengersystem.MessengerSystemPlugin"
+version: "1.0"
+name: "MessengerSystem"
+api-version: "1.18"
+depend:
+  - CorePlugin

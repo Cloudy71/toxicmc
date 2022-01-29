@@ -1,0 +1,7 @@
+main: "cz.cloudy.minecraft.toxicmc.ToxicMcPlugin"
+version: "1.0"
+name: "ToxicMc"
+api-version: "1.18"
+depend:
+  - CorePlugin
+  - MessengerSystem

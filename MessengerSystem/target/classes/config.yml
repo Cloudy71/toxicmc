@@ -1,0 +1,9 @@
+core:
+  database: true
+database:
+  engine: ""
+  host: ""
+  port: 0
+  user: ""
+  pass: ""
+  db: ""
