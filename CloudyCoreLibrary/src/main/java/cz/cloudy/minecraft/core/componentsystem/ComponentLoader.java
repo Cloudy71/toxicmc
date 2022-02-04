@@ -43,16 +43,18 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * @author Cloudy
  */
 public class ComponentLoader {
-    private static final Logger                                logger          = LoggerFactory.getLogger(ComponentLoader.class);
-    private static final Map<Class<?>, ComponentData>          componentMap    = new HashMap<>();
-    private static final List<CronData>                        cronListeners   = new ArrayList<>();
-    private static final Map<String, List<ActionListenerData>> actionListeners = new HashMap<>();
+    private static final Logger                                logger            = LoggerFactory.getLogger(ComponentLoader.class);
+    private static final Map<Class<?>, ComponentData>          componentMap      = new HashMap<>();
+    private static final List<CronData>                        cronListeners     = new ArrayList<>();
+    private static final Map<String, List<ActionListenerData>> actionListeners   = new HashMap<>();
+    private static final List<Class<?>>                        stashedComponents = new ArrayList<>();
 
     private static class ComponentLoadObject {
         public Class<?>  clazz;
@@ -114,6 +116,16 @@ public class ComponentLoader {
         logger.info("Reading all {} component scans for components", componentScans.size());
         List<ComponentLoadObject> classList = new ArrayList<>();
         List<Map.Entry<ComponentScan, Class<?>[]>> packageList = new ArrayList<>();
+
+        List<Class<?>> removeList = new ArrayList<>();
+        for (Class<?> stashedComponent : stashedComponents) {
+            if (!checkConfiguration(caller, stashedComponent))
+                continue;
+            removeList.add(stashedComponent);
+            classList.add(new ComponentLoadObject(stashedComponent, stashedComponent.getAnnotation(Component.class)));
+        }
+        stashedComponents.removeAll(removeList);
+
         ClassLoader classLoader = caller.getClass().getClassLoader();
         for (ComponentScan componentScan : componentScans) {
             ConfigurationBuilder builder = new ConfigurationBuilder()
@@ -163,6 +175,10 @@ public class ComponentLoader {
                 if (component == null)
                     continue;
 
+                if (!checkConfiguration(caller, clazz)) {
+                    stashedComponents.add(clazz);
+                    continue;
+                }
                 classList.add(new ComponentLoadObject(clazz, component));
                 // TODO: Sorting by dependencies
             }
@@ -232,7 +248,7 @@ public class ComponentLoader {
                 if (!(value.component() instanceof IComponent c))
                     continue;
 
-                c.onClassScan(entry.getValue());
+                c.onClassScan(caller, entry.getValue());
             }
         }
 
@@ -262,6 +278,22 @@ public class ComponentLoader {
         componentMap.values().stream()
                     .filter(componentData -> componentData.plugin() == caller && componentData.component() instanceof IComponent)
                     .forEach(componentData -> ((IComponent) componentData.component()).onStart());
+    }
+
+    public boolean checkConfiguration(CorePlugin caller, Class<?> clazz) {
+        CheckConfiguration checkConfiguration = clazz.getAnnotation(CheckConfiguration.class);
+        if (checkConfiguration == null)
+            return true;
+
+        String[] parts = checkConfiguration.value().split("=");
+        String name = parts[0];
+        String value = parts[1];
+
+        Object configValue = caller.getConfig().get(name, null);
+        if (configValue == null)
+            return false;
+
+        return configValue.toString().equals(value);
     }
 
     private void registerComponentAnnotations(CorePlugin caller, Object component) {
@@ -431,5 +463,13 @@ public class ComponentLoader {
 
     public static <T> T get(@NotNull Class<T> clazz) {
         return Preconditions.checkNotNull(getNullable(clazz));
+    }
+
+    public static <T> void getAndRun(@NotNull Class<T> clazz, Consumer<T> runnable) {
+        T component = getNullable(clazz);
+        if (component == null)
+            return;
+
+        runnable.accept(component);
     }
 }

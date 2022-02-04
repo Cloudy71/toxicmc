@@ -16,7 +16,10 @@ import cz.cloudy.minecraft.core.componentsystem.types.command_responses.ErrorCom
 import cz.cloudy.minecraft.core.componentsystem.types.command_responses.InfoCommandResponse;
 import cz.cloudy.minecraft.core.database.Database;
 import cz.cloudy.minecraft.messengersystem.pojo.UserAccount;
+import org.bukkit.Color;
+import org.bukkit.Particle;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -80,5 +83,20 @@ public class AdminComponent
         userAccount.save();
 
         return new InfoCommandResponse("Barva byla nastavena.");
+    }
+
+    @CommandListener("draw_line")
+    @CheckPermission(CheckPermission.OP)
+    private Object onDrawLine(CommandData data) {
+        for (float i = 0; i < 5; i += .1f) {
+            data.getPlayer().getWorld().spawnParticle(
+                    Particle.REDSTONE,
+                    data.getPlayer().getLocation().clone().add(new Vector(0f, i, 0f)),
+                    1, 0, 2, 0,
+                    new Particle.DustOptions(Color.LIME, 1f)
+            );
+        }
+
+        return new InfoCommandResponse("OK");
     }
 }

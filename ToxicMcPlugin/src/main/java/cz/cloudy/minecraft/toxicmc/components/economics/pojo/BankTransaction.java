@@ -8,10 +8,7 @@ package cz.cloudy.minecraft.toxicmc.components.economics.pojo;
 
 import cz.cloudy.minecraft.core.data_transforming.transformers.UUIDToStringTransformer;
 import cz.cloudy.minecraft.core.database.DatabaseEntity;
-import cz.cloudy.minecraft.core.database.annotation.Column;
-import cz.cloudy.minecraft.core.database.annotation.Size;
-import cz.cloudy.minecraft.core.database.annotation.Table;
-import cz.cloudy.minecraft.core.database.annotation.Transform;
+import cz.cloudy.minecraft.core.database.annotation.*;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -40,6 +37,7 @@ public class BankTransaction
     protected String message;
 
     @Column("date_processed")
+    @Default("NOW()")
     protected ZonedDateTime dateTime;
 
     public UUID getFromUuid() {

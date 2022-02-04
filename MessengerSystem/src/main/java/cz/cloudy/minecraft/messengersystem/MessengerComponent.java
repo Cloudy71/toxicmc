@@ -6,6 +6,7 @@
 
 package cz.cloudy.minecraft.messengersystem;
 
+import cz.cloudy.minecraft.core.Constants;
 import cz.cloudy.minecraft.core.LoggerFactory;
 import cz.cloudy.minecraft.core.componentsystem.annotations.CheckCondition;
 import cz.cloudy.minecraft.core.componentsystem.annotations.CommandListener;
@@ -82,11 +83,11 @@ public class MessengerComponent
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
         event.quitMessage(null);
-        if (!event.getPlayer().hasMetadata("userAccount"))
+        if (!event.getPlayer().hasMetadata(MessengerConstants.USER_ACCOUNT))
             return;
 
 
-        event.getPlayer().removeMetadata("userAccount", getPlugin());
+        event.getPlayer().removeMetadata(MessengerConstants.USER_ACCOUNT, getPlugin());
         messenger.removePlayerFromLogged(event.getPlayer());
         messenger.sendMessage(ChatColor.YELLOW + "Hráč " + event.getPlayer().getName() + " odešel.");
     }
@@ -95,13 +96,13 @@ public class MessengerComponent
     public void chatEvent(AsyncChatEvent event) {
         event.setCancelled(true);
 
-        boolean isLogged = event.getPlayer().hasMetadata("userAccount");
+        boolean isLogged = event.getPlayer().hasMetadata(MessengerConstants.USER_ACCOUNT);
         if (!isLogged)
             logger.info(ChatColor.GRAY + event.getPlayer().getName() + ": " + ((TextComponent) event.message()).content());
         if (!isLogged)
             return;
 
-        UserAccount account = (UserAccount) event.getPlayer().getMetadata("userAccount").get(0).value();
+        UserAccount account = (UserAccount) event.getPlayer().getMetadata(MessengerConstants.USER_ACCOUNT).get(0).value();
 
         messenger.sendMessage(
                 net.kyori.adventure.text.Component.text()
@@ -152,8 +153,8 @@ public class MessengerComponent
     }
 
     public UserAccount getUserAccount(Player player) {
-        if (player.hasMetadata("userAccount"))
-            return (UserAccount) player.getMetadata("userAccount").get(0).value();
+        if (player.hasMetadata(MessengerConstants.USER_ACCOUNT))
+            return (UserAccount) player.getMetadata(MessengerConstants.USER_ACCOUNT).get(0).value();
         return getOfflineUserAccount(player);
     }
 
@@ -162,7 +163,7 @@ public class MessengerComponent
     }
 
     private void loginPlayer(Player player, UserAccount userAccount) {
-        player.setMetadata("userAccount", new FixedMetadataValue(getPlugin(), userAccount));
+        player.setMetadata(MessengerConstants.USER_ACCOUNT, new FixedMetadataValue(getPlugin(), userAccount));
         messenger.addPlayerToLogged(player);
         messenger.sendMessage(ChatColor.YELLOW + "Hráč " + player.getName() + " se připojil.");
         if (player.getGameMode() != GameMode.CREATIVE) {
@@ -179,7 +180,7 @@ public class MessengerComponent
     @CheckCondition(CheckCondition.SENDER_IS_PLAYER)
     @CheckCondition(CheckCondition.ARGS_IS_2)
     private boolean onCommandRegister(CommandData data) {
-        if (data.getPlayer().hasMetadata("userAccount")) {
+        if (data.getPlayer().hasMetadata(MessengerConstants.USER_ACCOUNT)) {
             return false;
         }
 
@@ -217,7 +218,7 @@ public class MessengerComponent
     @CheckCondition(CheckCondition.SENDER_IS_PLAYER)
     @CheckCondition(CheckCondition.ARGS_IS_1)
     private boolean onCommandLogin(CommandData data) {
-        if (data.getPlayer().hasMetadata("userAccount")) {
+        if (data.getPlayer().hasMetadata(MessengerConstants.USER_ACCOUNT)) {
             return false;
         }
 
@@ -248,7 +249,7 @@ public class MessengerComponent
 //    @CheckCondition(CheckCondition.ARGS_IS_3)
     private Object onChangePassword(CommandData data) {
         if (data.arguments().length == 3) {
-            if (!data.isPlayer() || !data.getPlayer().hasMetadata("userAccount")) {
+            if (!data.isPlayer() || !data.getPlayer().hasMetadata(MessengerConstants.USER_ACCOUNT)) {
                 return false;
             }
 

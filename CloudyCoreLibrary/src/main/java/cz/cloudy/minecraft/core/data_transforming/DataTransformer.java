@@ -8,6 +8,7 @@ package cz.cloudy.minecraft.core.data_transforming;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import cz.cloudy.minecraft.core.CorePlugin;
 import cz.cloudy.minecraft.core.LoggerFactory;
 import cz.cloudy.minecraft.core.componentsystem.ReflectionUtils;
 import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
@@ -31,7 +32,7 @@ public class DataTransformer
     private static final Map<Class<? extends IDataTransformer<?, ?>>, IDataTransformer<?, ?>> transformersByType      = new HashMap<>();
 
     @Override
-    public void onClassScan(Class<?>[] classes) {
+    public void onClassScan(CorePlugin caller, Class<?>[] classes) {
         for (Class<?> clazz : classes) {
             if (!IDataTransformer.class.isAssignableFrom(clazz) || clazz == IDataTransformer.class)
                 continue;

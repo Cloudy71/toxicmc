@@ -116,6 +116,7 @@ public class MysqlDatabaseMapper
     @Override
     public List<String> fieldScansToIndexes(Set<FieldScan> fieldScanSet) {
         List<String> indexList = new ArrayList<>();
+        Map<Byte, List<String>> multiIndexMap = new HashMap<>();
         for (FieldScan fieldScan : fieldScanSet) {
             if (fieldScan.index() != null) {
                 indexList.add(
@@ -131,9 +132,30 @@ public class MysqlDatabaseMapper
                         fieldScan.column().value() +
                         ")"
                 );
-            } else if (fieldScan.multiIndex() != null) {
-                // TODO: ...
             }
+            if (fieldScan.multiIndex() != null) {
+                multiIndexMap.computeIfAbsent(fieldScan.multiIndex().value(), aByte -> new ArrayList<>(List.of(fieldScan.classScan().table().value())))
+                             .add(fieldScan.column().value());
+            }
+        }
+
+        for (Map.Entry<Byte, List<String>> entry : multiIndexMap.entrySet()) {
+            String tableName = entry.getValue().get(0);
+            entry.getValue().remove(0);
+            String idxString = "CREATE INDEX MIDX_" +
+                               entry.getKey() +
+                               " ON " +
+                               tableName +
+                               " (";
+            StringBuilder fields = new StringBuilder();
+            for (String s : entry.getValue()) {
+                fields.append(fields.length() > 0 ? "," : "")
+                      .append(s);
+            }
+            idxString += fields +
+                         ")";
+            indexList.add(idxString);
+
         }
         return indexList;
     }

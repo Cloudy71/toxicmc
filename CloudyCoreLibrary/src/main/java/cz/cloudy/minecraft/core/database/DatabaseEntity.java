@@ -7,12 +7,14 @@
 package cz.cloudy.minecraft.core.database;
 
 import com.google.common.base.Preconditions;
+import cz.cloudy.minecraft.core.CoreRunnerPlugin;
 import cz.cloudy.minecraft.core.componentsystem.ComponentLoader;
 import cz.cloudy.minecraft.core.database.annotation.AutoIncrement;
 import cz.cloudy.minecraft.core.database.annotation.Column;
 import cz.cloudy.minecraft.core.database.annotation.PrimaryKey;
 import cz.cloudy.minecraft.core.database.annotation.Size;
 import cz.cloudy.minecraft.core.database.enums.FetchLevel;
+import org.bukkit.Bukkit;
 
 /**
  * @author Cloudy
@@ -86,6 +88,13 @@ public abstract class DatabaseEntity {
         ComponentLoader.get(Database.class).saveEntity(this);
     }
 
+    public void saveAsync() {
+        Bukkit.getScheduler().runTaskAsynchronously(
+                CoreRunnerPlugin.singleton,
+                this::save
+        );
+    }
+
     /**
      * Saves all data as save does, however this also saves all foreign key entities if they are loaded
      */
@@ -124,6 +133,13 @@ public abstract class DatabaseEntity {
      */
     public void delete() {
         Preconditions.checkState(replicated, "Entity is not replicated");
-        // TODO: ...
+        ComponentLoader.get(Database.class).deleteEntity(this);
+    }
+
+    public void deleteAsync() {
+        Bukkit.getScheduler().runTaskAsynchronously(
+                CoreRunnerPlugin.singleton,
+                this::delete
+        );
     }
 }

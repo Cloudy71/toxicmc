@@ -19,5 +19,5 @@ import java.lang.annotation.Target;
 public @interface MultiIndex {
     byte value(); // Index ID for entity
 
-    boolean unique() default false;
+//    boolean unique() default false;
 }

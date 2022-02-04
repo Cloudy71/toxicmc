@@ -20,8 +20,8 @@ import cz.cloudy.minecraft.core.database.enums.QueryType;
 import cz.cloudy.minecraft.core.database.fetch_data.MysqlFetchData;
 import cz.cloudy.minecraft.core.database.mappers.MysqlDatabaseMapper;
 import cz.cloudy.minecraft.core.database.queries.RawDMLOrDDLQuery;
-import cz.cloudy.minecraft.core.database.results.QueryDMLOrDDLResult;
-import cz.cloudy.minecraft.core.database.results.QueryDQLResult;
+import cz.cloudy.minecraft.core.database.results.DMLOrDDLQueryResult;
+import cz.cloudy.minecraft.core.database.results.DQLQueryResult;
 import cz.cloudy.minecraft.core.database.types.ClassScan;
 import cz.cloudy.minecraft.core.database.types.DatabaseConnectionData;
 import cz.cloudy.minecraft.core.database.types.FieldScan;
@@ -91,9 +91,9 @@ public class MysqlDatabaseProcessor
         constraintList = new HashMap<>();
         indexList = new HashMap<>();
 
-        QueryDQLResult result;
+        DQLQueryResult result;
         try {
-            result = (QueryDQLResult) processQuery(
+            result = (DQLQueryResult) processQuery(
                     Query.builder()
                          .rawDQL(
                                  "SELECT TABLE_NAME, COLUMN_NAME, COLUMN_DEFAULT, IS_NULLABLE, COLUMN_TYPE, COLUMN_KEY\n" +
@@ -307,10 +307,10 @@ public class MysqlDatabaseProcessor
         logger.info(queryString);
         if (query.getQueryType() == QueryType.RawDQL) {
             ResultSet resultSet = statement.executeQuery();
-            return new QueryDQLResult(resultSet);
+            return new DQLQueryResult(resultSet);
         } else {
             int resultNum = statement.executeUpdate();
-            return new QueryDMLOrDDLResult(statement, resultNum);
+            return new DMLOrDDLQueryResult(statement, resultNum);
         }
 
     }
@@ -381,13 +381,11 @@ public class MysqlDatabaseProcessor
                                       int limit) {
         // TODO: Parameters could contain untransformed data.
         String query = buildQueryForEntityData(clazz, conditions, fetchLevel, from, limit);
-        QueryDQLResult result = (QueryDQLResult) ComponentLoader.get(Database.class)
+        DQLQueryResult result = (DQLQueryResult) ComponentLoader.get(Database.class)
                                                                 .processQuery(Query.builder()
                                                                                    .rawDQL(query)
                                                                                    .build(),
                                                                               parameters);
-//        if (result.getRowCount() != 1)
-//            return null;
         return result;
     }
 
@@ -403,7 +401,7 @@ public class MysqlDatabaseProcessor
                 0,
                 1
         );
-        QueryDQLResult result = (QueryDQLResult) ComponentLoader.get(Database.class)
+        DQLQueryResult result = (DQLQueryResult) ComponentLoader.get(Database.class)
                                                                 .processQuery(Query.builder()
                                                                                    .rawDQL(query)
                                                                                    .build(),
@@ -466,7 +464,7 @@ public class MysqlDatabaseProcessor
              .append(values)
              .append(")");
 
-        QueryDMLOrDDLResult result = (QueryDMLOrDDLResult) ComponentLoader.get(Database.class)
+        DMLOrDDLQueryResult result = (DMLOrDDLQueryResult) ComponentLoader.get(Database.class)
                                                                           .processQuery(Query.builder()
                                                                                              .rawDMLOrDDL(query.toString())
                                                                                              .statementType(autoIncrement
@@ -485,7 +483,7 @@ public class MysqlDatabaseProcessor
                 generatedKeys.next();
                 return generatedKeys.getLong(1);
             } catch (SQLException e) {
-                logger.error("", e);
+                logger.error("Failed to fetch generated keys", e);
                 return null;
             }
         }
@@ -549,5 +547,24 @@ public class MysqlDatabaseProcessor
                                           .rawDMLOrDDL(query.toString())
                                           .build(),
                                      parameters);
+    }
+
+    @Override
+    public void deleteEntity(DatabaseEntity entity) {
+        DatabaseEntityMapper entityMapper = ComponentLoader.get(DatabaseEntityMapper.class);
+        FieldScan primaryKeyFieldScan = entityMapper.getPrimaryKeyFieldScan(entity.getClass());
+        Object databasePrimaryKey = primaryKeyFieldScan.getDatabaseValue(entity);
+
+        String query = "DELETE FROM " +
+                       entityMapper.getClassScanForEntityClass(entity.getClass()).table().value() +
+                       " WHERE " +
+                       primaryKeyFieldScan.column().value() +
+                       "=:pk";
+
+        ComponentLoader.get(Database.class)
+                       .processQuery(Query.builder()
+                                          .rawDMLOrDDL(query)
+                                          .build(),
+                                     ImmutableMap.of("pk", databasePrimaryKey));
     }
 }

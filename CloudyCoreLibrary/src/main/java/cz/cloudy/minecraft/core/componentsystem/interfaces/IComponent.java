@@ -6,6 +6,7 @@
 
 package cz.cloudy.minecraft.core.componentsystem.interfaces;
 
+import cz.cloudy.minecraft.core.CorePlugin;
 import cz.cloudy.minecraft.core.componentsystem.ComponentLoader;
 import org.bukkit.plugin.Plugin;
 
@@ -16,7 +17,7 @@ public interface IComponent {
     default void onLoad() {
     }
 
-    default void onClassScan(Class<?>[] classes) {
+    default void onClassScan(CorePlugin caller, Class<?>[] classes) {
     }
 
     /**

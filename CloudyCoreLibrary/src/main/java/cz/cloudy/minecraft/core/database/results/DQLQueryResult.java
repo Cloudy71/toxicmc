@@ -22,9 +22,9 @@ import java.util.Map;
 /**
  * @author Cloudy
  */
-public class QueryDQLResult
+public class DQLQueryResult
         extends QueryResult {
-    private static final Logger logger = LoggerFactory.getLogger(QueryDQLResult.class);
+    private static final Logger logger = LoggerFactory.getLogger(DQLQueryResult.class);
 
     private final ResultSet resultSet;
 
@@ -33,7 +33,7 @@ public class QueryDQLResult
 
     private List<Map<String, Object>> processedDataMap;
 
-    public QueryDQLResult(ResultSet resultSet) {
+    public DQLQueryResult(ResultSet resultSet) {
         this.resultSet = resultSet;
         this.columns = new ArrayList<>();
         this.dataTable = new ArrayList<>();

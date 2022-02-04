@@ -7,3 +7,5 @@ database:
   user: ""
   pass: ""
   db: ""
+maps:
+  mapController: false

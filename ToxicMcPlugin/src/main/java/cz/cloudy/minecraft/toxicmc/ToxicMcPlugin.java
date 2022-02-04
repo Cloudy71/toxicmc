@@ -30,7 +30,7 @@ public class ToxicMcPlugin
     public void onLoaded() {
         logger.info("ToxicMc has been enabled.");
 
-//        saveDefaultConfig();
+        saveDefaultConfig();
     }
 
     @Override

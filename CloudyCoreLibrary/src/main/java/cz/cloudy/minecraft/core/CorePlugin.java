@@ -66,7 +66,7 @@ public abstract class CorePlugin
         componentLoader.startComponents(this);
     }
 
-    protected ComponentLoader getComponentLoader() {
+    public ComponentLoader getComponentLoader() {
         return componentLoader;
     }
 

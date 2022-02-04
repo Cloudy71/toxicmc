@@ -17,13 +17,13 @@ import java.util.Map;
 /**
  * @author Cloudy
  */
-public class QueryDMLOrDDLResult
+public class DMLOrDDLQueryResult
         extends QueryResult {
 
     private final Statement statement;
     private final int       result;
 
-    public QueryDMLOrDDLResult(Statement statement, int result) {
+    public DMLOrDDLQueryResult(Statement statement, int result) {
         this.statement = statement;
         this.result = result;
     }

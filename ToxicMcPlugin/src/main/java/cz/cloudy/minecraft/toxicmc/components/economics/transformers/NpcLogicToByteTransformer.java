@@ -4,10 +4,11 @@
   Time: 23:34
 */
 
-package cz.cloudy.minecraft.toxicmc.components.economics;
+package cz.cloudy.minecraft.toxicmc.components.economics.transformers;
 
 import cz.cloudy.minecraft.core.data_transforming.interfaces.IDataTransformer;
 import cz.cloudy.minecraft.core.types.Pair;
+import cz.cloudy.minecraft.toxicmc.components.economics.NpcLogic;
 
 import java.util.List;
 import java.util.Objects;

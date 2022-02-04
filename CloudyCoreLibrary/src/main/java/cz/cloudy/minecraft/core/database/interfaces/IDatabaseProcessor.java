@@ -108,4 +108,6 @@ public interface IDatabaseProcessor<T extends IDatabaseMapper> {
      * @param entity
      */
     void saveEntityExisting(DatabaseEntity entity);
+
+    void deleteEntity(DatabaseEntity entity);
 }

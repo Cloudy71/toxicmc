@@ -1,0 +1,11 @@
+core:
+  database: false
+database:
+  engine: ""
+  host: ""
+  port: 0
+  user: ""
+  pass: ""
+  db: ""
+maps:
+  mapController: true

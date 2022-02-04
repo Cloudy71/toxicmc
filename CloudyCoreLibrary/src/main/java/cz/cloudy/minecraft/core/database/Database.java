@@ -174,4 +174,8 @@ public class Database {
             fullSaveEntity(obj);
         }
     }
+
+    protected void deleteEntity(DatabaseEntity entity) {
+        databaseEntityMapper.deleteEntity(entity);
+    }
 }

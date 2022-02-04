@@ -7,7 +7,7 @@
 package cz.cloudy.minecraft.core.database;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.HashBasedTable;
+import cz.cloudy.minecraft.core.CorePlugin;
 import cz.cloudy.minecraft.core.LoggerFactory;
 import cz.cloudy.minecraft.core.componentsystem.ReflectionUtils;
 import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
@@ -38,11 +38,12 @@ public class DatabaseEntityMapper
         implements IComponent {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseEntityMapper.class);
 
-    protected static final Map<Class<? extends DatabaseEntity>, ClassScan>       mappedClasses = new HashMap<>();
-    protected static final Map<Class<? extends DatabaseEntity>, List<FieldScan>> mappedFields  = new HashMap<>();
+    protected static final Map<Class<? extends DatabaseEntity>, ClassScan>       mappedClasses   = new HashMap<>();
+    protected static final Map<Class<? extends DatabaseEntity>, List<FieldScan>> mappedFields    = new HashMap<>();
+    protected static final List<Class<? extends DatabaseEntity>>                 stashedEntities = new ArrayList<>();
 
-    protected static final com.google.common.collect.Table<Class<? extends DatabaseEntity>, Object, DatabaseEntity> entityTable =
-            HashBasedTable.create();
+//    protected static final com.google.common.collect.Table<Class<? extends DatabaseEntity>, Object, DatabaseEntity> entityTable =
+//            HashBasedTable.create();
 
     @Component
     private Database database;
@@ -50,13 +51,32 @@ public class DatabaseEntityMapper
     @Component
     private DataTransformer dataTransformer;
 
+    @Component
+    private DatabaseCache cache;
+
     @Override
-    public void onClassScan(Class<?>[] classes) {
+    public void onClassScan(CorePlugin caller, Class<?>[] classes) {
+        List<Class<? extends DatabaseEntity>> removeList = new ArrayList<>();
+        for (Class<? extends DatabaseEntity> stashedEntity : stashedEntities) {
+            if (!caller.getComponentLoader().checkConfiguration(caller, stashedEntity))
+                continue;
+
+            logger.info("Mapping \"{}\" database entity", stashedEntity.getSimpleName());
+            removeList.add(stashedEntity);
+            mapEntityClass(stashedEntity);
+        }
+        stashedEntities.removeAll(removeList);
+
         for (Class<?> clazz : classes) {
             if (!DatabaseEntity.class.isAssignableFrom(clazz) || clazz == DatabaseEntity.class)
                 continue;
+            Class<? extends DatabaseEntity> entityClass = (Class<? extends DatabaseEntity>) clazz;
+            if (!caller.getComponentLoader().checkConfiguration(caller, clazz)) {
+                stashedEntities.add(entityClass);
+                continue;
+            }
             logger.info("Mapping \"{}\" database entity", clazz.getSimpleName());
-            mapEntityClass((Class<? extends DatabaseEntity>) clazz);
+            mapEntityClass(entityClass);
         }
     }
 
@@ -75,17 +95,96 @@ public class DatabaseEntityMapper
         return value;
     }
 
+    protected Object getPrimitiveTransformedValue(Object value, Class<?> newType) {
+        Class<?> currentType = value.getClass();
+
+        if (newType == byte.class)
+            newType = Byte.class;
+        else if (newType == short.class)
+            newType = Short.class;
+        else if (newType == int.class)
+            newType = Integer.class;
+        else if (newType == long.class)
+            newType = Long.class;
+        else if (newType == float.class)
+            newType = Float.class;
+        else if (newType == double.class)
+            newType = Double.class;
+        else if (newType == boolean.class)
+            newType = Boolean.class;
+
+        if ((currentType != String.class && currentType != Byte.class && currentType != Short.class && currentType != Integer.class &&
+             currentType != Long.class && currentType != Float.class && currentType != Double.class && currentType != Boolean.class) ||
+            (newType != String.class && newType != Byte.class && newType != Short.class && newType != Integer.class &&
+             newType != Long.class && newType != Float.class && newType != Double.class && newType != Boolean.class))
+            return value;
+
+        if (currentType == String.class) {
+            String v = (String) value;
+            if (newType == String.class)
+                return value;
+            if (newType == Byte.class)
+                return Byte.parseByte(v);
+            if (newType == Short.class)
+                return Short.parseShort(v);
+            if (newType == Integer.class)
+                return Integer.parseInt(v);
+            if (newType == Long.class)
+                return Long.parseLong(v);
+            if (newType == Float.class)
+                return Float.parseFloat(v);
+            if (newType == Double.class)
+                return Double.parseDouble(v);
+            return Boolean.parseBoolean(v);
+        }
+        if (currentType == Boolean.class) {
+            Boolean v = (Boolean) value;
+            if (newType == String.class)
+                return v ? "true" : "false";
+            if (newType == Byte.class)
+                return v ? (byte) 1 : (byte) 0;
+            if (newType == Short.class)
+                return v ? (short) 1 : (short) 0;
+            if (newType == Integer.class)
+                return v ? 1 : 0;
+            if (newType == Long.class)
+                return v ? 1L : 0L;
+            if (newType == Float.class)
+                return v ? 1f : 0f;
+            if (newType == Double.class)
+                return v ? 1d : 0d;
+            return v;
+        }
+
+        Number n = (Number) value;
+        if (newType == Byte.class)
+            return n.byteValue();
+        if (newType == Short.class)
+            return n.shortValue();
+        if (newType == Integer.class)
+            return n.intValue();
+        if (newType == Long.class)
+            return n.longValue();
+        if (newType == Float.class)
+            return n.floatValue();
+        if (newType == Double.class)
+            return n.doubleValue();
+
+        return value;
+    }
+
     protected Object getTransformedValue(FieldScan fieldScan, Object value) {
+        if (value == null)
+            return null;
+
         Class<?> type = fieldScan.field().getType();
+        value = getPrimitiveTransformedValue(value, type);
         if (fieldScan.transform() != null) {
             IDataTransformer transformer = dataTransformer.getUnknownDataTransformer(fieldScan.transform().value());
-            if (value.getClass() == transformer.getTypes().getValue())
+            Class<?> requiredType = (Class<?>) transformer.getTypes().getValue();
+            value = getPrimitiveTransformedValue(value, requiredType);
+            if (value.getClass() == requiredType)
                 value = transformer.transform1to0(value);
-        } else if (value.getClass() == Integer.class) {
-            if (type == Byte.class || type == byte.class)
-                value = ((Integer) value).byteValue();
-            else if (type == Short.class || type == short.class)
-                value = ((Integer) value).shortValue();
         } else if (value.getClass() == Timestamp.class) {
             Timestamp timestamp = (Timestamp) value;
             if (type == ZonedDateTime.class)
@@ -163,6 +262,7 @@ public class DatabaseEntityMapper
 
         mapEntityClassInternal(clazz);
         mapEntityFields(clazz, new ArrayList<>());
+        cache.addCacheForEntityType(clazz);
     }
 
     private void mapEntityClassInternal(Class<? extends DatabaseEntity> clazz) {
@@ -238,11 +338,12 @@ public class DatabaseEntityMapper
         entity.fetchLevel = fetchLevel;
         mapDataToEntity(entity, data, dataPrefix, fetchLevel);
         FieldScan primaryKeyField = getPrimaryKeyFieldScan(clazz);
-        entityTable.put(
-                clazz,
-                ReflectionUtils.getValue(primaryKeyField.field(), entity).orElseThrow(),
-                entity
-        );
+        cache.addEntity(entity, ReflectionUtils.getValue(primaryKeyField.field(), entity).orElseThrow());
+//        entityTable.put(
+//                clazz,
+//                ReflectionUtils.getValue(primaryKeyField.field(), entity).orElseThrow(),
+//                entity
+//        );
         // Check for FetchLevel of object
         // To avoid having Primitive fetch level assigned even though entity is fully loaded
         if (fetchLevel == FetchLevel.Primitive) {
@@ -302,24 +403,24 @@ public class DatabaseEntityMapper
             Object dataValue;
             if (foreignObjectClass != null) {
                 Object primaryKeyValue = getTransformedValue(foreignObjectPrimaryKeyField, data.get(columnName));
-                FetchLevel newFetchLevel = field.lazy() == null ? fetchLevel : (fetchLevel == FetchLevel.Full ? FetchLevel.Primitive : FetchLevel.None);
-                if (entityTable.contains(foreignObjectClass, primaryKeyValue)) {
-                    dataValue = entityTable.get(foreignObjectClass, primaryKeyValue);
-                    Preconditions.checkNotNull(dataValue);
-                    mapDataToEntity(
-                            (DatabaseEntity) dataValue,
-                            data,
-                            dataPrefix + field.column().value() + "__",
-                            newFetchLevel
-                    );
-                } else
-                    dataValue = mapDataToNewEntity(
-                            foreignObjectClass,
-                            data,
-                            dataPrefix + field.column().value() + "__",
-                            newFetchLevel
-                    );
-
+                dataValue = null;
+                if (primaryKeyValue != null) {
+                    FetchLevel newFetchLevel = field.lazy() == null ? fetchLevel : (fetchLevel == FetchLevel.Full ? FetchLevel.Primitive : FetchLevel.None);
+                    if ((dataValue = cache.getEntity(foreignObjectClass, primaryKeyValue)) != null) {
+                        mapDataToEntity(
+                                (DatabaseEntity) dataValue,
+                                data,
+                                dataPrefix + field.column().value() + "__",
+                                newFetchLevel
+                        );
+                    } else
+                        dataValue = mapDataToNewEntity(
+                                foreignObjectClass,
+                                data,
+                                dataPrefix + field.column().value() + "__",
+                                newFetchLevel
+                        );
+                }
             } else {
                 dataValue = data.get(columnName);
             }
@@ -330,10 +431,10 @@ public class DatabaseEntityMapper
     }
 
     private <T extends DatabaseEntity> T getEntityFromCache(Class<T> clazz, Object primaryKey, FetchLevel fetchLevel) {
-        if (!entityTable.contains(clazz, primaryKey))
+        T entity;
+        if ((entity = cache.getEntity(clazz, primaryKey)) == null)
             return null;
 
-        T entity = (T) entityTable.get(clazz, primaryKey);
         Preconditions.checkNotNull(entity);
         if (entity.fetchLevel.isLowerThan(fetchLevel))
             loadEntity(entity, fetchLevel);
@@ -347,7 +448,7 @@ public class DatabaseEntityMapper
             return cachedEntity;
 
         QueryResult result = database.getProcessor().findEntityData(clazz, primaryKey, fetchLevel);
-        if (result == null)
+        if (result == null || result.getRowCount() == 0)
             return null;
 
         return mapDataToNewEntity(clazz, result.getDataMap(0), "", fetchLevel);
@@ -363,8 +464,8 @@ public class DatabaseEntityMapper
         Map<String, Object> data = result.getDataMap(0);
         Preconditions.checkState(data.containsKey(primaryKeyField.column().value()));
         Object primaryKeyValue = getTransformedValue(primaryKeyField, data.get(primaryKeyField.column().value()));
-        if (entityTable.contains(clazz, primaryKeyValue)) {
-            DatabaseEntity entity = entityTable.get(clazz, primaryKeyValue);
+        DatabaseEntity entity;
+        if ((entity = cache.getEntity(clazz, primaryKeyValue)) != null) {
             if (entity.fetchLevel.isLowerThan(fetchLevel))
                 mapDataToEntity(entity, data, "", fetchLevel);
             return (T) entity;
@@ -384,8 +485,8 @@ public class DatabaseEntityMapper
         for (Map<String, Object> map : result.getDataMapTable()) {
             Preconditions.checkState(map.containsKey(primaryKeyField.column().value()));
             Object primaryKeyValue = getTransformedValue(primaryKeyField, map.get(primaryKeyField.column().value()));
-            if (entityTable.contains(clazz, primaryKeyValue)) {
-                DatabaseEntity entity = entityTable.get(clazz, primaryKeyValue);
+            DatabaseEntity entity;
+            if ((entity = cache.getEntity(clazz, primaryKeyValue)) != null) {
                 if (entity.fetchLevel.isLowerThan(fetchLevel))
                     mapDataToEntity(entity, map, "", fetchLevel);
                 entities.add((T) entity);
@@ -419,6 +520,16 @@ public class DatabaseEntityMapper
         Object primaryKeyValue = getTransformedValue(primaryKeyFieldScan, primaryKey);
         ReflectionUtils.setValue(primaryKeyFieldScan.field(), entity, primaryKeyValue);
         entity.replicated = true;
-        entityTable.put(entity.getClass(), primaryKeyValue, entity);
+        cache.addEntity(entity, primaryKeyValue);
+    }
+
+    protected void deleteEntity(DatabaseEntity entity) {
+        if (!entity.replicated)
+            return;
+
+        FieldScan primaryKeyFieldScan = getPrimaryKeyFieldScan(entity.getClass());
+        Object primaryKeyValue = ReflectionUtils.getValue(primaryKeyFieldScan.field(), entity);
+        cache.removeEntity(entity, primaryKeyValue);
+        database.getProcessor().deleteEntity(entity);
     }
 }

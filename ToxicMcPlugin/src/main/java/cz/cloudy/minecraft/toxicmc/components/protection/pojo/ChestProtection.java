@@ -31,7 +31,7 @@ public class ChestProtection
     protected Block block;
 
     @Column("status")
-    @Default("true")
+    @Default("1")
     protected boolean locked;
 
     public UserAccount getOwner() {

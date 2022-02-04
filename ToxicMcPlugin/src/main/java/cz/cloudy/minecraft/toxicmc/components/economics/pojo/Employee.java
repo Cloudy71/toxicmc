@@ -9,7 +9,8 @@ package cz.cloudy.minecraft.toxicmc.components.economics.pojo;
 import cz.cloudy.minecraft.core.database.DatabaseEntity;
 import cz.cloudy.minecraft.core.database.annotation.*;
 import cz.cloudy.minecraft.toxicmc.components.economics.NpcLogic;
-import cz.cloudy.minecraft.toxicmc.components.economics.NpcLogicToByteTransformer;
+import cz.cloudy.minecraft.toxicmc.components.economics.transformers.NpcLogicToByteTransformer;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
 
@@ -22,6 +23,7 @@ public class Employee
 
     @Column("company")
     @ForeignKey
+    @Index
     @Lazy
     protected Company company;
 
@@ -43,6 +45,7 @@ public class Employee
     @Default("NOW()")
     protected ZonedDateTime dateEmployed;
 
+    @NotNull
     public Company getCompany() {
         return company;
     }
