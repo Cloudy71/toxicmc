@@ -20,6 +20,10 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>dev.aspectj</groupId>
+        <artifactId>aspectj-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.2.4</version>
         <executions>
@@ -34,6 +38,7 @@
                   <include>org.reflections:reflections</include>
                   <include>org.javassist:javassist</include>
                   <include>com.cronutils:cron-utils</include>
+                  <include>org.aspectj:aspectjrt</include>
                 </includes>
               </artifactSet>
             </configuration>
@@ -71,6 +76,18 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>22.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.spigotmc</groupId>
+      <artifactId>spigot</artifactId>
+      <version>1.18.1-R0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>31.0.1-jre</version>
@@ -86,5 +103,6 @@
   <properties>
     <maven.compiler.target>17</maven.compiler.target>
     <maven.compiler.source>17</maven.compiler.source>
+    <craftbukkit.path>E:/Games/Minecraft/toxicmc/CraftBukkit</craftbukkit.path>
   </properties>
 </project>

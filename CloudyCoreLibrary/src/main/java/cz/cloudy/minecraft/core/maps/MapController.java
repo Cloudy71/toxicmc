@@ -6,7 +6,6 @@
 
 package cz.cloudy.minecraft.core.maps;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import cz.cloudy.minecraft.core.LoggerFactory;
 import cz.cloudy.minecraft.core.componentsystem.annotations.CheckConfiguration;
@@ -21,15 +20,14 @@ import cz.cloudy.minecraft.core.maps.pojo.MapRecordChunk;
 import cz.cloudy.minecraft.core.types.Int2;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.hanging.HangingBreakEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
 import org.slf4j.Logger;
@@ -69,8 +67,8 @@ public class MapController
         );
 
         if (mapRecord != null) {
-            mapRecord.setUsage(0);
-            mapRecord.saveAsync();
+//            mapRecord.setUsage(0);
+//            mapRecord.saveAsync();
             return Bukkit.getMap(mapRecord.getMapId());
         }
 
@@ -79,52 +77,53 @@ public class MapController
         mapRecord.setWorld(world);
         mapRecord.setMapId(mapView.getId());
         mapRecord.setUsage(0);
-        mapRecord.saveAsync();
+        mapRecord.save();
+//        mapRecord.saveAsync();
 
         return mapView;
     }
 
-    public void freeMap(MapView mapView) {
-        MapRecord mapRecord = database.findEntity(
-                MapRecord.class,
-                "world = :world AND map_id = :mapId",
-                ImmutableMap.of("world", mapView.getWorld().getName(),
-                                "mapId", mapView.getId()),
-                FetchLevel.Primitive
-        );
-
-        if (mapRecord != null) {
-            mapRecord.setUsage(0);
-            mapRecord.saveAsync();
-        } else {
-            mapRecord = new MapRecord();
-            mapRecord.setWorld(mapView.getWorld());
-            mapRecord.setMapId(mapView.getId());
-            mapRecord.setUsage(0);
-            mapRecord.saveAsync();
-        }
-
-        for (MapRecordChunk chunk : database.findEntities(
-                MapRecordChunk.class,
-                "map_record.id = :id",
-                ImmutableMap.of("id", mapRecord.getId()),
-                FetchLevel.Primitive
-        )) {
-            Chunk loadedChunk = chunk.getMapRecord().getWorld().getChunkAt(chunk.getChunkPosition().getX(), chunk.getChunkPosition().getY());
-            if (loadedChunk.isLoaded())
-                loadedChunk.load();
-
-            for (Entity entity : loadedChunk.getEntities()) {
-                if (!(entity instanceof ItemFrame itemFrame) || !(itemFrame.getItem().getItemMeta() instanceof MapMeta mapMeta) ||
-                    mapMeta.getMapView() == null || mapMeta.getMapView().getId() != chunk.getMapRecord().getMapId())
-                    continue;
-                itemFrame.setItem(null);
-            }
-
-            // TODO: Find all ItemFrames and clear them
-            chunk.deleteAsync();
-        }
-    }
+//    public void freeMap(MapView mapView) {
+//        MapRecord mapRecord = database.findEntity(
+//                MapRecord.class,
+//                "world = :world AND map_id = :mapId",
+//                ImmutableMap.of("world", mapView.getWorld().getName(),
+//                                "mapId", mapView.getId()),
+//                FetchLevel.Primitive
+//        );
+//
+//        if (mapRecord != null) {
+//            mapRecord.setUsage(0);
+//            mapRecord.saveAsync();
+//        } else {
+//            mapRecord = new MapRecord();
+//            mapRecord.setWorld(mapView.getWorld());
+//            mapRecord.setMapId(mapView.getId());
+//            mapRecord.setUsage(0);
+//            mapRecord.saveAsync();
+//        }
+//
+//        for (MapRecordChunk chunk : database.findEntities(
+//                MapRecordChunk.class,
+//                "map_record.id = :id",
+//                ImmutableMap.of("id", mapRecord.getId()),
+//                FetchLevel.Primitive
+//        )) {
+//            Chunk loadedChunk = chunk.getMapRecord().getWorld().getChunkAt(chunk.getChunkPosition().getX(), chunk.getChunkPosition().getY());
+//            if (loadedChunk.isLoaded())
+//                loadedChunk.load();
+//
+//            for (Entity entity : loadedChunk.getEntities()) {
+//                if (!(entity instanceof ItemFrame itemFrame) || !(itemFrame.getItem().getItemMeta() instanceof MapMeta mapMeta) ||
+//                    mapMeta.getMapView() == null || mapMeta.getMapView().getId() != chunk.getMapRecord().getMapId())
+//                    continue;
+//                itemFrame.setItem(null);
+//            }
+//
+//            // TODO: Find all ItemFrames and clear them
+//            chunk.deleteAsync();
+//        }
+//    }
 
     protected void placeMapRecordUsage(MapRecord mapRecord, Int2 chunkPosition) {
         MapRecordChunk chunk = new MapRecordChunk();
@@ -153,51 +152,50 @@ public class MapController
         mapRecord.saveAsync();
     }
 
-    public void setItemFrameMapView(ItemFrame itemFrame, int mapId) {
-        if (itemFrame.getItem().getItemMeta() instanceof MapMeta) {
-            clearItemFrameMapView(itemFrame);
-        }
+//    public void setItemFrameMapView(ItemFrame itemFrame, int mapId) {
+//        if (itemFrame.getItem().getItemMeta() instanceof MapMeta) {
+//            clearItemFrameMapView(itemFrame);
+//        }
+//
+//        MapView map = Bukkit.getMap(mapId);
+//        ItemStack itemStack = new ItemStack(Material.FILLED_MAP);
+//        MapMeta mapMeta = (MapMeta) itemStack.getItemMeta();
+//        mapMeta.setMapView(map);
+//        itemStack.setItemMeta(mapMeta);
+//        itemFrame.setItem(itemStack);
+//
+//        MapRecord mapRecord = database.findEntity(
+//                MapRecord.class,
+//                "world = :world AND map_id = :mapId",
+//                ImmutableMap.of(
+//                        "world", mapMeta.getMapView().getWorld().getName(),
+//                        "mapId", mapMeta.getMapView().getId()
+//                ),
+//                FetchLevel.Primitive
+//        );
+//        placeMapRecordUsage(mapRecord, new Int2(itemFrame.getChunk().getX(), itemFrame.getChunk().getZ()));
+//    }
+//
+//    public void clearItemFrameMapView(ItemFrame itemFrame) {
+//        Preconditions.checkState(itemFrame.getItem().getItemMeta() instanceof MapMeta);
+//        ItemStack itemStack = itemFrame.getItem();
+//        MapMeta mapMeta = (MapMeta) itemFrame.getItem().getItemMeta();
+//        Preconditions.checkNotNull(mapMeta.getMapView());
+//        itemFrame.setItem(null);
+//
+//        MapRecord mapRecord = database.findEntity(
+//                MapRecord.class,
+//                "world = :world AND map_id = :mapId",
+//                ImmutableMap.of(
+//                        "world", mapMeta.getMapView().getWorld().getName(),
+//                        "mapId", mapMeta.getMapView().getId()
+//                ),
+//                FetchLevel.Primitive
+//        );
+//        removeMapRecordUsage(mapRecord, new Int2(itemFrame.getChunk().getX(), itemFrame.getChunk().getZ()));
+//    }
 
-        MapView map = Bukkit.getMap(mapId);
-        ItemStack itemStack = new ItemStack(Material.FILLED_MAP);
-        MapMeta mapMeta = (MapMeta) itemStack.getItemMeta();
-        mapMeta.setMapView(map);
-        itemStack.setItemMeta(mapMeta);
-        itemFrame.setItem(itemStack);
-
-        MapRecord mapRecord = database.findEntity(
-                MapRecord.class,
-                "world = :world AND map_id = :mapId",
-                ImmutableMap.of(
-                        "world", mapMeta.getMapView().getWorld().getName(),
-                        "mapId", mapMeta.getMapView().getId()
-                ),
-                FetchLevel.Primitive
-        );
-        placeMapRecordUsage(mapRecord, new Int2(itemFrame.getChunk().getX(), itemFrame.getChunk().getZ()));
-    }
-
-    public void clearItemFrameMapView(ItemFrame itemFrame) {
-        Preconditions.checkState(itemFrame.getItem().getItemMeta() instanceof MapMeta);
-        ItemStack itemStack = itemFrame.getItem();
-        MapMeta mapMeta = (MapMeta) itemFrame.getItem().getItemMeta();
-        Preconditions.checkNotNull(mapMeta.getMapView());
-        int mapId = mapMeta.getMapView().getId();
-        itemFrame.setItem(null);
-
-        MapRecord mapRecord = database.findEntity(
-                MapRecord.class,
-                "world = :world AND map_id = :mapId",
-                ImmutableMap.of(
-                        "world", mapMeta.getMapView().getWorld().getName(),
-                        "mapId", mapMeta.getMapView().getId()
-                ),
-                FetchLevel.Primitive
-        );
-        removeMapRecordUsage(mapRecord, new Int2(itemFrame.getChunk().getX(), itemFrame.getChunk().getZ()));
-    }
-
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onHangingBreakEvent(HangingBreakEvent e) {
         logger.info("HANGING BREAK: {}", e.getEntity());
         if (!(e.getEntity() instanceof ItemFrame itemFrame) || !(itemFrame.getItem().getItemMeta() instanceof MapMeta mapMeta) ||
@@ -220,7 +218,7 @@ public class MapController
         removeMapRecordUsage(mapRecord, new Int2(itemFrame.getChunk().getX(), itemFrame.getChunk().getZ()));
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerItemFrameChangeEvent(PlayerItemFrameChangeEvent e) {
         logger.info("MATERIAL: {}", e.getItemStack().getType());
         logger.info("ACTION: {}", e.getAction());

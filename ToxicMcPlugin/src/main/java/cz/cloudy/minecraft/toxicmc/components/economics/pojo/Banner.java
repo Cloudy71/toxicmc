@@ -104,12 +104,6 @@ public class Banner
         return getBannerParts(false);
     }
 
-    public Set<BannerPart> getUsedBannerParts() {
-        return getBannerParts().stream()
-                               .filter(BannerPart::isUsed)
-                               .collect(Collectors.toSet());
-    }
-
     public Int2 getPlaceSize() {
         return placeSize;
     }

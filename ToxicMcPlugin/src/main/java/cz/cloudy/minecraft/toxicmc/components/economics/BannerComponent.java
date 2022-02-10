@@ -21,10 +21,13 @@ import cz.cloudy.minecraft.toxicmc.components.economics.pojo.Banner;
 import cz.cloudy.minecraft.toxicmc.components.economics.pojo.BannerPart;
 import cz.cloudy.minecraft.toxicmc.components.economics.pojo.Company;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.BoundingBox;
@@ -34,6 +37,7 @@ import org.slf4j.Logger;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -115,7 +119,7 @@ public class BannerComponent
     }
 
     public void redrawBanner(Banner banner) {
-        List<BannerPart> bannerParts = new ArrayList<>(banner.getUsedBannerParts());
+        List<BannerPart> bannerParts = new LinkedList<>(banner.getBannerParts());
 
         BufferedImage image = ImageMapRenderer.loadImage(getPlugin().getDataFolder().getAbsolutePath() + "/Images/" + banner.getImagePath());
         int xParts = image.getWidth() / 128;
@@ -189,12 +193,18 @@ public class BannerComponent
     }
 
     public void placeBanner(Banner banner, List<ItemFrame> itemFrames) {
-        List<BannerPart> bannerParts = new ArrayList<>(banner.getUsedBannerParts());
+        List<BannerPart> bannerParts = new LinkedList<>(banner.getBannerParts());
         for (int i = 0; i < itemFrames.size(); i++) {
             ItemFrame itemFrame = itemFrames.get(i);
             BannerPart bannerPart = bannerParts.get(i);
 
-            mapController.setItemFrameMapView(itemFrame, bannerPart.getMapId());
+//            mapController.setItemFrameMapView(itemFrame, bannerPart.getMapId());
+            MapView map = Bukkit.getMap(bannerPart.getMapId());
+            ItemStack itemStack = new ItemStack(Material.FILLED_MAP);
+            MapMeta mapMeta = (MapMeta) itemStack.getItemMeta();
+            mapMeta.setMapView(map);
+            itemStack.setItemMeta(mapMeta);
+            itemFrame.setItem(itemStack);
             itemFrame.setMetadata(ToxicConstants.BANNER_ITEM_FRAMES, new FixedMetadataValue(getPlugin(), itemFrames));
             itemFrame.setFixed(true);
         }

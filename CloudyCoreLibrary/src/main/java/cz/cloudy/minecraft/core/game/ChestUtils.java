@@ -16,6 +16,7 @@ import org.bukkit.block.DoubleChest;
  */
 @Component
 public class ChestUtils {
+
     public Block getBaseBlock(Block refBlock) {
         if (refBlock == null || !(refBlock.getState() instanceof Chest chest))
             return null;

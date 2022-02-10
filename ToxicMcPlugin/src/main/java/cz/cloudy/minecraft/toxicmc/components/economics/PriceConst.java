@@ -20,4 +20,7 @@ public class PriceConst {
             new int[] {7000, 14000, 21000, 28000},
             new int[] {8000, 16000, 24000, 32000}
     };
+
+    public static final int AREA_BLOCK = 5;
+    public static final float AREA_BLOCK_EXPENSE = .5f;
 }

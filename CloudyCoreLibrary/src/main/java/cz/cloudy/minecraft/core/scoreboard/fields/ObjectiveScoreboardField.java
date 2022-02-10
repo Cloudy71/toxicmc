@@ -8,7 +8,6 @@ package cz.cloudy.minecraft.core.scoreboard.fields;
 
 import cz.cloudy.minecraft.core.scoreboard.ScoreboardField;
 import cz.cloudy.minecraft.core.scoreboard.ScoreboardObject;
-import net.kyori.adventure.text.Component;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 
@@ -28,14 +27,17 @@ public class ObjectiveScoreboardField
 
     @Override
     protected void createField(ScoreboardObject scoreboardObject) {
+//        objective = getScoreboard(scoreboardObject).registerNewObjective(name, "dummy",
+//                                                                         Component.text(scoreboardObject.parse(
+//                                                                                 displayText)/*, Style.style(TextDecoration.OBFUSCATED)*/));
         objective = getScoreboard(scoreboardObject).registerNewObjective(name, "dummy",
-                                                                         Component.text(scoreboardObject.parse(
-                                                                                 displayText)/*, Style.style(TextDecoration.OBFUSCATED)*/));
+                                                                         scoreboardObject.parse(displayText));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
     @Override
     protected void updateField(ScoreboardObject scoreboardObject) {
-        objective.displayName(Component.text(scoreboardObject.parse(displayText)/*, Style.style(TextDecoration.OBFUSCATED)*/));
+//        objective.displayName(Component.text(scoreboardObject.parse(displayText)/*, Style.style(TextDecoration.OBFUSCATED)*/));
+        objective.setDisplayName(scoreboardObject.parse(displayText)/*, Style.style(TextDecoration.OBFUSCATED)*/);
     }
 }

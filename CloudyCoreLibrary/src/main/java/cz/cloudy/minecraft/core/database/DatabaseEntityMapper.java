@@ -87,7 +87,7 @@ public class DatabaseEntityMapper
     }
 
     public Object getFieldScanDatabaseValue(DatabaseEntity entity, FieldScan fieldScan) {
-        Object value = ReflectionUtils.getValue(fieldScan.field(), entity).orElse(null);
+        Object value = ReflectionUtils.getValueOpt(fieldScan.field(), entity).orElse(null);
         if (value == null)
             return null;
         if (fieldScan.transform() != null)
@@ -338,7 +338,7 @@ public class DatabaseEntityMapper
         entity.fetchLevel = fetchLevel;
         mapDataToEntity(entity, data, dataPrefix, fetchLevel);
         FieldScan primaryKeyField = getPrimaryKeyFieldScan(clazz);
-        cache.addEntity(entity, ReflectionUtils.getValue(primaryKeyField.field(), entity).orElseThrow());
+        cache.addEntity(entity, ReflectionUtils.getValueOpt(primaryKeyField.field(), entity).orElseThrow());
 //        entityTable.put(
 //                clazz,
 //                ReflectionUtils.getValue(primaryKeyField.field(), entity).orElseThrow(),
@@ -475,6 +475,11 @@ public class DatabaseEntityMapper
     }
 
     protected <T extends DatabaseEntity> Set<T> findEntities(Class<T> clazz, String conditions, Map<String, Object> parameters, FetchLevel fetchLevel) {
+        Set<T> allEntities;
+        if (conditions == null && parameters == null && (allEntities = cache.getAllCacheEntities(clazz)) != null) {
+            return allEntities;
+        }
+
         QueryResult result = database.getProcessor().findEntityData(clazz, conditions, parameters, fetchLevel, -1, -1);
         if (result == null)
             return null;
@@ -494,7 +499,11 @@ public class DatabaseEntityMapper
                 entities.add(mapDataToNewEntity(clazz, map, "", fetchLevel));
         }
 
-        return new HashSet<>(entities);
+        Set<T> dataSet = new HashSet<>(entities);
+        if (conditions == null && parameters == null)
+            cache.addAllCacheEntities(clazz, (Set<DatabaseEntity>) dataSet);
+
+        return dataSet;
     }
 
     protected void loadEntity(DatabaseEntity entity, FetchLevel fetchLevel) {
@@ -521,6 +530,7 @@ public class DatabaseEntityMapper
         ReflectionUtils.setValue(primaryKeyFieldScan.field(), entity, primaryKeyValue);
         entity.replicated = true;
         cache.addEntity(entity, primaryKeyValue);
+        cache.clearAllCacheEntities(entity.getClass());
     }
 
     protected void deleteEntity(DatabaseEntity entity) {
@@ -528,8 +538,9 @@ public class DatabaseEntityMapper
             return;
 
         FieldScan primaryKeyFieldScan = getPrimaryKeyFieldScan(entity.getClass());
-        Object primaryKeyValue = ReflectionUtils.getValue(primaryKeyFieldScan.field(), entity);
+        Object primaryKeyValue = ReflectionUtils.getValueOpt(primaryKeyFieldScan.field(), entity).orElseThrow();
         cache.removeEntity(entity, primaryKeyValue);
         database.getProcessor().deleteEntity(entity);
+        cache.clearAllCacheEntities(entity.getClass());
     }
 }

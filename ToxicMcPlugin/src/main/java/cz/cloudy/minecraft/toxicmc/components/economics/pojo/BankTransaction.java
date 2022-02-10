@@ -32,6 +32,10 @@ public class BankTransaction
     @Column("amount")
     protected int amount;
 
+    @Column("tax")
+    @Default("0")
+    protected int tax;
+
     @Column("message")
     @Size(64)
     protected String message;
@@ -62,6 +66,14 @@ public class BankTransaction
 
     public void setAmount(int amount) {
         this.amount = amount;
+    }
+
+    public int getTax() {
+        return tax;
+    }
+
+    public void setTax(int tax) {
+        this.tax = tax;
     }
 
     public String getMessage() {

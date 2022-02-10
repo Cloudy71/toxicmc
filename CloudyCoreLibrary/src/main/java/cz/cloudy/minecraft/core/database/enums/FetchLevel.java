@@ -19,9 +19,8 @@ public enum FetchLevel {
      */
     Primitive((byte) 1),
     /**
-     * We know all primitive data, and we know all foreign keys on FetchLevel.Primitive level.
+     * We know all primitive data, and we know all non-lazy foreign keys on FetchLevel.Full otherwise we know them on FetchLevel.Primitive.
      */
-    // TODO: Maybe change to non-lazy foreign keys to Full level otherwise Primitive?
     Full((byte) 2);
 
     private final byte byteValue;

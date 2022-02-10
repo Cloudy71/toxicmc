@@ -429,7 +429,7 @@ public class MysqlDatabaseProcessor
 
             Object value = null;
             if (fieldScan.foreignKey() != null) {
-                DatabaseEntity foreignEntity = (DatabaseEntity) ReflectionUtils.getValue(fieldScan.field(), entity).orElse(null);
+                DatabaseEntity foreignEntity = (DatabaseEntity) ReflectionUtils.getValueOpt(fieldScan.field(), entity).orElse(null);
                 if (foreignEntity != null) {
                     FieldScan foreignPrimaryKeyFieldScan = entityMapper.getPrimaryKeyFieldScan(foreignEntity.getClass());
                     value = foreignPrimaryKeyFieldScan.getDatabaseValue(foreignEntity);
@@ -488,7 +488,7 @@ public class MysqlDatabaseProcessor
             }
         }
         FieldScan primaryKeyFieldScan = entityMapper.getPrimaryKeyFieldScan(entity.getClass());
-        return ReflectionUtils.getValue(primaryKeyFieldScan.field(), entity).orElse(null);
+        return ReflectionUtils.getValueOpt(primaryKeyFieldScan.field(), entity).orElse(null);
     }
 
     @Override
@@ -505,7 +505,7 @@ public class MysqlDatabaseProcessor
 
             Object value = null;
             if (fieldScan.foreignKey() != null) {
-                DatabaseEntity foreignEntity = (DatabaseEntity) ReflectionUtils.getValue(fieldScan.field(), entity).orElse(null);
+                DatabaseEntity foreignEntity = (DatabaseEntity) ReflectionUtils.getValueOpt(fieldScan.field(), entity).orElse(null);
                 if (foreignEntity != null) {
                     FieldScan foreignPrimaryKeyFieldScan = entityMapper.getPrimaryKeyFieldScan(foreignEntity.getClass());
                     value = foreignPrimaryKeyFieldScan.getDatabaseValue(foreignEntity);

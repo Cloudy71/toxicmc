@@ -144,6 +144,14 @@ public class Database {
         return databaseEntityMapper.findEntities(clazz, conditions, parameters, fetchLevel);
     }
 
+    public <T extends DatabaseEntity> Set<T> findEntities(Class<T> clazz, FetchLevel fetchLevel) {
+        return findEntities(clazz, null, null, fetchLevel);
+    }
+
+    public <T extends DatabaseEntity> Set<T> findEntities(Class<T> clazz) {
+        return findEntities(clazz, FetchLevel.Primitive);
+    }
+
     /**
      * @param entity
      */
@@ -167,7 +175,7 @@ public class Database {
         for (FieldScan field : fields) {
             if (field.foreignKey() == null)
                 continue;
-            DatabaseEntity obj = (DatabaseEntity) ReflectionUtils.getValue(field.field(), entity).orElse(null);
+            DatabaseEntity obj = (DatabaseEntity) ReflectionUtils.getValueOpt(field.field(), entity).orElse(null);
             if (obj == null)
                 return;
 

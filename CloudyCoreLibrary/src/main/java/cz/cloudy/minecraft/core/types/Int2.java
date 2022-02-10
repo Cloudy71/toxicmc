@@ -45,6 +45,10 @@ public class Int2 {
         this.y = y;
     }
 
+    public int getProduct() {
+        return this.x * this.y;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)

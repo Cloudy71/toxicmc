@@ -9,3 +9,5 @@ database:
   db: ""
 maps:
   mapController: true
+toxic:
+  tax: 0.15

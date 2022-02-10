@@ -28,7 +28,7 @@ public class ReflectionUtils {
         return fields;
     }
 
-    public static Optional<Object> getValue(Field field, Object obj) {
+    public static Optional<Object> getValueOpt(Field field, Object obj) {
         field.setAccessible(true);
         Object value;
         try {

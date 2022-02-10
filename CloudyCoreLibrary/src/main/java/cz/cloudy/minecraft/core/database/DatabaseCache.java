@@ -12,6 +12,7 @@ import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * @author Cloudy
@@ -19,6 +20,9 @@ import javax.annotation.Nullable;
 @Component
 public class DatabaseCache {
     private static final Cache<Class<? extends DatabaseEntity>, Cache<Object, DatabaseEntity>> primaryCache =
+            CacheBuilder.newBuilder()
+                        .build();
+    private static final Cache<Class<? extends DatabaseEntity>, Set<DatabaseEntity>>           allCache     =
             CacheBuilder.newBuilder()
                         .build();
 
@@ -52,5 +56,18 @@ public class DatabaseCache {
         if (map == null)
             return;
         map.invalidate(primaryValue);
+    }
+
+    protected void addAllCacheEntities(Class<? extends DatabaseEntity> type, @NotNull Set<DatabaseEntity> entities) {
+        allCache.put(type, entities);
+    }
+
+    @Nullable
+    protected <T> Set<T> getAllCacheEntities(@NotNull Class<T> type) {
+        return (Set<T>) allCache.getIfPresent(type);
+    }
+
+    protected void clearAllCacheEntities(Class<? extends DatabaseEntity> type) {
+        allCache.invalidate(type);
     }
 }

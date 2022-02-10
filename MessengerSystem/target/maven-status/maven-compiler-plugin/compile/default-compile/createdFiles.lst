@@ -1,7 +1,0 @@
-cz\cloudy\minecraft\messengersystem\MessengerConstants.class
-cz\cloudy\minecraft\messengersystem\MessengerSystemPlugin.class
-cz\cloudy\minecraft\messengersystem\AdminComponent.class
-cz\cloudy\minecraft\messengersystem\MessengerComponent.class
-cz\cloudy\minecraft\messengersystem\pojo\UserAccount.class
-cz\cloudy\minecraft\messengersystem\ChatComponent.class
-cz\cloudy\minecraft\messengersystem\types\LoginEventData.class

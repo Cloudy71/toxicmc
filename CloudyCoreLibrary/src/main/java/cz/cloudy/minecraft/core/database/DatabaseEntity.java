@@ -65,7 +65,7 @@ public abstract class DatabaseEntity {
      * @return True if object is at least primitively fetched
      */
     public boolean isFetched() {
-        return fetchLevel == FetchLevel.Full || fetchLevel == FetchLevel.Primitive;
+        return fetchLevel.isHigherThan(FetchLevel.None);
     }
 
     /**
