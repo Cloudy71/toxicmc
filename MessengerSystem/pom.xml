@@ -35,7 +35,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                    <outputDirectory>E:/Games/Minecraft/toxicmc/plugins</outputDirectory>
+                    <outputDirectory>D:/Games/Minecraft/toxicmc/plugins</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>

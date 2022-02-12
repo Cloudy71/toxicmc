@@ -10,6 +10,8 @@ import cz.cloudy.minecraft.core.data_transforming.transformers.Int2ToStringTrans
 import cz.cloudy.minecraft.core.database.DatabaseEntity;
 import cz.cloudy.minecraft.core.database.annotation.*;
 import cz.cloudy.minecraft.core.types.Int2;
+import cz.cloudy.minecraft.toxicmc.components.economics.enums.AreaType;
+import cz.cloudy.minecraft.toxicmc.components.economics.transformers.AreaTypeToByteTransformer;
 import org.bukkit.util.Vector;
 
 import java.time.ZonedDateTime;
@@ -17,6 +19,7 @@ import java.time.ZonedDateTime;
 /**
  * @author Cloudy
  */
+// TODO: Implement area types and area creation menu, so there are global areas and under them there are specific areas, like stock or shop
 @Table("company_area")
 public class CompanyArea
         extends DatabaseEntity {
@@ -37,6 +40,10 @@ public class CompanyArea
     @Column("date_created")
     @Default("NOW()")
     protected ZonedDateTime dateCreated;
+
+    @Column("area_type")
+    @Transform(AreaTypeToByteTransformer.class)
+    protected AreaType areaType;
 
     public Company getCompany() {
         return company;
@@ -70,10 +77,18 @@ public class CompanyArea
         this.dateCreated = dateCreated;
     }
 
+    public AreaType getAreaType() {
+        return areaType;
+    }
+
+    public void setAreaType(AreaType areaType) {
+        this.areaType = areaType;
+    }
+
     // ======================================================================
 
     public boolean isVectorInArea(Vector vector) {
         return vector.getX() >= getStart().getX() && vector.getZ() >= getStart().getY() ||
-               vector.getX() <= getEnd().getX() || vector.getZ() <= getEnd().getY();
+                vector.getX() <= getEnd().getX() || vector.getZ() <= getEnd().getY();
     }
 }

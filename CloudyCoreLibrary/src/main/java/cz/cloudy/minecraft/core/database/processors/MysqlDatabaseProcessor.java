@@ -26,6 +26,7 @@ import cz.cloudy.minecraft.core.database.types.ClassScan;
 import cz.cloudy.minecraft.core.database.types.DatabaseConnectionData;
 import cz.cloudy.minecraft.core.database.types.FieldScan;
 import cz.cloudy.minecraft.core.types.Pair;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 
 import java.sql.*;

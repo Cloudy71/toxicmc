@@ -31,8 +31,8 @@ public class InteractiveInventory
         implements Listener {
     private static int idGenerator = 0;
 
-    protected final Map<String, InteractiveInventoryObject>            globalInventoryMapByTitle    = new HashMap<>();
-    protected final Map<Integer, InteractiveInventoryObject>           globalInventoryMapById       = new HashMap<>();
+    protected final Map<String, InteractiveInventoryObject> globalInventoryMapByTitle = new HashMap<>();
+    protected final Map<Integer, InteractiveInventoryObject> globalInventoryMapById = new HashMap<>();
     protected final Map<String, Map<UUID, InteractiveInventoryObject>> temporaryInventoryMapByTitle = new HashMap<>();
 
     public InteractiveInventoryObject createGlobalInventory(int size, String title) {
@@ -78,7 +78,7 @@ public class InteractiveInventory
     public void destroyOnetimeInventory(String title, Player player) {
         Preconditions.checkState(temporaryInventoryMapByTitle.containsKey(title), "No interactive inventory with title \"" + title + "\"");
         Preconditions.checkState(temporaryInventoryMapByTitle.get(title).containsKey(player.getUniqueId()),
-                                 "No interactive inventory with title \"" + title + "\" with player \"" + player.getName() + "\"");
+                "No interactive inventory with title \"" + title + "\" with player \"" + player.getName() + "\"");
         InteractiveInventoryObject interactiveInventoryObject = temporaryInventoryMapByTitle.get(title).get(player.getUniqueId());
         temporaryInventoryMapByTitle.get(title).remove(player.getUniqueId());
         interactiveInventoryObject.inventory.close();
@@ -87,11 +87,14 @@ public class InteractiveInventory
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onInventoryClickEvent(InventoryClickEvent e) {
         InventoryView inventoryView = e.getView();
+        if (!(inventoryView.title().compact() instanceof TextComponent))
+            return;
+
         InteractiveInventoryObject interactiveInventory;
         String title = ((TextComponent) inventoryView.title().compact()).content();
         if (!e.isLeftClick() || e.getClickedInventory() != inventoryView.getTopInventory() ||
-            (!globalInventoryMapByTitle.containsKey(title) &&
-             (!temporaryInventoryMapByTitle.containsKey(title) || !temporaryInventoryMapByTitle.get(title).containsKey(e.getWhoClicked().getUniqueId()))))
+                (!globalInventoryMapByTitle.containsKey(title) &&
+                        (!temporaryInventoryMapByTitle.containsKey(title) || !temporaryInventoryMapByTitle.get(title).containsKey(e.getWhoClicked().getUniqueId()))))
             return;
 
         interactiveInventory = globalInventoryMapByTitle.get(title);
@@ -112,7 +115,7 @@ public class InteractiveInventory
         InteractiveInventoryObject interactiveInventory;
         String title = ((TextComponent) inventoryView.title().compact()).content();
         if ((!globalInventoryMapByTitle.containsKey(title) &&
-             (!temporaryInventoryMapByTitle.containsKey(title) || !temporaryInventoryMapByTitle.get(title).containsKey(e.getPlayer().getUniqueId()))))
+                (!temporaryInventoryMapByTitle.containsKey(title) || !temporaryInventoryMapByTitle.get(title).containsKey(e.getPlayer().getUniqueId()))))
             return;
 
         interactiveInventory = globalInventoryMapByTitle.get(title);

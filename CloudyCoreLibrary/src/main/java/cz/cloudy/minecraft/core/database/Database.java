@@ -9,6 +9,7 @@ package cz.cloudy.minecraft.core.database;
 import com.google.common.base.Preconditions;
 import cz.cloudy.minecraft.core.LoggerFactory;
 import cz.cloudy.minecraft.core.componentsystem.ReflectionUtils;
+import cz.cloudy.minecraft.core.componentsystem.annotations.Cached;
 import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
 import cz.cloudy.minecraft.core.database.enums.DatabaseEngine;
 import cz.cloudy.minecraft.core.database.enums.FetchLevel;
@@ -114,6 +115,7 @@ public class Database {
      * @param <T>
      * @return
      */
+    @Cached(informative = true)
     public <T extends DatabaseEntity> T findEntity(Class<T> clazz, Object primaryKey, FetchLevel fetchLevel) {
         return databaseEntityMapper.findEntity(clazz, primaryKey, fetchLevel);
     }
@@ -124,6 +126,7 @@ public class Database {
      * @param <T>
      * @return
      */
+    @Cached(informative = true)
     public <T extends DatabaseEntity> T findEntity(Class<T> clazz, Object primaryKey) {
         return findEntity(clazz, primaryKey, FetchLevel.Primitive);
     }
@@ -140,14 +143,35 @@ public class Database {
         return databaseEntityMapper.findEntity(clazz, conditions, parameters, fetchLevel);
     }
 
+    /**
+     * @param clazz
+     * @param conditions
+     * @param parameters
+     * @param fetchLevel
+     * @param <T>
+     * @return
+     */
     public <T extends DatabaseEntity> Set<T> findEntities(Class<T> clazz, String conditions, Map<String, Object> parameters, FetchLevel fetchLevel) {
         return databaseEntityMapper.findEntities(clazz, conditions, parameters, fetchLevel);
     }
 
+    /**
+     * @param clazz
+     * @param fetchLevel
+     * @param <T>
+     * @return
+     */
+    @Cached(informative = true)
     public <T extends DatabaseEntity> Set<T> findEntities(Class<T> clazz, FetchLevel fetchLevel) {
         return findEntities(clazz, null, null, fetchLevel);
     }
 
+    /**
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    @Cached(informative = true)
     public <T extends DatabaseEntity> Set<T> findEntities(Class<T> clazz) {
         return findEntities(clazz, FetchLevel.Primitive);
     }

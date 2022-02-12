@@ -7,6 +7,10 @@
 package cz.cloudy.minecraft.toxicmc.components.economics;
 
 import com.google.common.collect.ImmutableMap;
+import cz.cloudy.minecraft.core.LoggerFactory;
+import cz.cloudy.minecraft.core.await.Await;
+import cz.cloudy.minecraft.core.await.AwaitConsumer;
+import cz.cloudy.minecraft.core.await.AwaitTimedConsumer;
 import cz.cloudy.minecraft.core.componentsystem.annotations.CommandListener;
 import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
 import cz.cloudy.minecraft.core.componentsystem.interfaces.IComponent;
@@ -16,6 +20,11 @@ import cz.cloudy.minecraft.core.componentsystem.types.command_responses.InfoComm
 import cz.cloudy.minecraft.core.database.Database;
 import cz.cloudy.minecraft.core.database.enums.FetchLevel;
 import cz.cloudy.minecraft.core.game.EntityUtils;
+import cz.cloudy.minecraft.core.game.TextUtils;
+import cz.cloudy.minecraft.core.items.ItemStackBuilder;
+import cz.cloudy.minecraft.core.math.VectorUtils;
+import cz.cloudy.minecraft.core.particles.ParticleJob;
+import cz.cloudy.minecraft.core.particles.Particles;
 import cz.cloudy.minecraft.core.types.Int2;
 import cz.cloudy.minecraft.messengersystem.MessengerConstants;
 import cz.cloudy.minecraft.messengersystem.pojo.UserAccount;
@@ -23,19 +32,24 @@ import cz.cloudy.minecraft.toxicmc.ToxicConstants;
 import cz.cloudy.minecraft.toxicmc.components.economics.enums.PaymentType;
 import cz.cloudy.minecraft.toxicmc.components.economics.pojo.*;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
+import org.slf4j.Logger;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Cloudy
@@ -43,6 +57,7 @@ import java.util.UUID;
 @Component
 public class CompanyComponent
         implements IComponent, Listener {
+    private static final Logger logger = LoggerFactory.getLogger(CompanyComponent.class);
 
     @Component
     private Database database;
@@ -55,6 +70,12 @@ public class CompanyComponent
 
     @Component
     private EntityUtils entityUtils;
+
+    @Component
+    private ItemStackBuilder itemStackBuilder;
+
+    @Component
+    private Particles particles;
 
     public CompanyArea getCompanyAreaFromVector(Company company, Vector vector) {
         Set<CompanyArea> companyAreaSet = database.findEntities(
@@ -91,6 +112,40 @@ public class CompanyComponent
 
     public boolean isVectorInAnyCompanyArea(Vector vector) {
         return getAnyCompanyAreaFromVector(vector) != null;
+    }
+
+    public ItemStack giveManageTool(Player player, String usage) {
+        ItemStack axe = itemStackBuilder.create()
+                .material(Material.WOODEN_AXE)
+                .itemMeta(Damageable.class, damageable -> {
+                    damageable.setDamage(0);
+                    damageable.displayName(TextUtils.get(ToxicConstants.ITEM_COMPANY_TOOL_NAME));
+                    damageable.lore(List.of(
+                            TextUtils.get(usage)
+                    ));
+                })
+                .build();
+        Map<Integer, ItemStack> result = player.getInventory().addItem(axe);
+        if (!result.isEmpty())
+            return null;
+
+        player.getInventory().setItemInMainHand(axe);
+        return axe;
+    }
+
+    @EventHandler
+    public void onPlayerInteractEvent(PlayerInteractEvent e) {
+        Await.process(e);
+    }
+
+    @CommandListener("yes")
+    private void onYes(CommandData data) {
+        Await.process(data);
+    }
+
+    @CommandListener("no")
+    private void onNo(CommandData data) {
+        Await.process(data);
     }
 
     @CommandListener("company")
@@ -154,6 +209,8 @@ public class CompanyComponent
             return onCompanyManageBanner(commandData);
         if (sub.equals("area"))
             return onCompanyManageArea(commandData);
+        if (sub.equals("stock"))
+            return onCompanyManageStock(commandData);
         return new InfoCommandResponse("Neznámý požadavek.");
     }
 
@@ -180,7 +237,7 @@ public class CompanyComponent
         );
 
         if (itemFrame.getItem().getType() != Material.AIR) {
-
+            // TODO: Delete or replace if path provided or something...
         } else {
             List<ItemFrame> itemFrames;
             if (banner == null) {
@@ -219,32 +276,161 @@ public class CompanyComponent
         return new InfoCommandResponse("OK!");
     }
 
-    //    @Async
     private Object onCompanyManageArea(CommandData data) {
         PlayerEmployee employee;
         if ((employee = entityUtils.getMetadata(data.getPlayer(), ToxicConstants.PLAYER_EMPLOYEE)).getLevel() != PlayerEmployee.LEVEL_OWNER)
             return new ErrorCommandResponse("Nejsi vlastníkem společnosti");
 
-        Int2 size = new Int2(16, 16);
-        int expenseAmount = (int) Math.ceil(size.getProduct() * PriceConst.AREA_BLOCK_EXPENSE);
-        transactionManager.confirm(
+        ItemStack axe = giveManageTool(data.getPlayer(), ToxicConstants.ITEM_LORE_USAGE_AREA);
+        if (axe == null)
+            return new ErrorCommandResponse("Nemáš žádné volné místo v inventáři pro firemní nástroj!");
+        Vector[] ends = new Vector[2];
+        Await.playerEvent(
                 data.getPlayer(),
-//                employee.getCompany().getUuid(),
-                TransactionManager.BANK,
-                /*6400*/size.getProduct() * PriceConst.AREA_BLOCK,
-                size.getX() + "x" + size.getY() + " firemní areál\n" + ChatColor.GRAY + "Výdaje: " + ChatColor.WHITE + "+ " +
-                transactionManager.printMoney(expenseAmount) + "\n" +
-                "Po zrušení areálu bude vyplacena záloha vrácena.",
-                PaymentType.COMPANY_AREA,
-                player -> {
-                    Expense expense = new Expense();
-                    expense.setUuid(employee.getCompany().getUuid());
-                    expense.setExpenseType(PaymentType.COMPANY_AREA);
-                    expense.setAmount(expenseAmount);
-                    expense.save();
-                },
-                player -> {}
+                PlayerInteractEvent.class,
+                (self, e) -> {
+                    if (!axe.equals(e.getItem()) || e.getClickedBlock() == null ||
+                            (e.getAction() != Action.LEFT_CLICK_BLOCK && e.getAction() != Action.RIGHT_CLICK_BLOCK))
+                        return;
+
+                    if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
+                        ends[0] = e.getClickedBlock().getLocation().toBlockLocation().toVector();
+                        e.getPlayer().sendMessage(ChatColor.GOLD + "První roh nastaven!");
+                    } else {
+                        ends[1] = e.getClickedBlock().getLocation().toBlockLocation().toVector();
+                        e.getPlayer().sendMessage(ChatColor.GOLD + "Protější roh nastaven!");
+                    }
+
+                    e.setCancelled(true);
+                    if (ends[0] == null || ends[1] == null)
+                        return;
+
+                    e.getPlayer().sendMessage(ChatColor.AQUA + "Oba rohy byly nastaveny.");
+                    e.getPlayer().getInventory().remove(axe);
+                    self.dismiss();
+                    VectorUtils.boundingBoxNormalize(ends[0], ends[1]);
+                    if (isVectorInAnyCompanyArea(ends[0]) || isVectorInAnyCompanyArea(ends[1])) {
+                        e.getPlayer().sendMessage(ChatColor.DARK_RED + "Na tomto místě již někdo má firemní areál.");
+                        return;
+                    }
+
+                    Int2 size = new Int2((int) (ends[1].getX() - ends[0].getX()), (int) (ends[1].getZ() - ends[0].getZ()));
+                    double y = Math.max(ends[0].getY(), ends[1].getY()) + 2d;
+                    int expenseAmount = (int) Math.ceil(size.getProduct() * PriceConst.AREA_BLOCK_EXPENSE);
+                    e.getPlayer().sendMessage(ChatColor.GRAY + "Velikost: " + ChatColor.WHITE + size.getX() + "x" + size.getY());
+                    e.getPlayer().sendMessage(
+                            ChatColor.GRAY + "Záloha: " + ChatColor.WHITE + transactionManager.printMoney(size.getProduct() * PriceConst.AREA_BLOCK));
+                    e.getPlayer().sendMessage(
+                            ChatColor.GRAY + "Výdaje: " + ChatColor.WHITE + transactionManager.printMoney(expenseAmount));
+                    e.getPlayer().sendMessage(
+                            ChatColor.AQUA + "Pro potvrzení nebo zrušení použij " + ChatColor.GOLD + "/yes " + ChatColor.AQUA + "nebo " + ChatColor.GOLD + "/no");
+                    ParticleJob particleJob = particles.collection(
+                            particles.pulseLine(
+                                    e.getPlayer().getWorld(),
+                                    new Vector(ends[0].getX(), y, ends[0].getZ()),
+                                    new Vector(ends[1].getX() + 1, y, ends[0].getZ()),
+                                    Color.YELLOW,
+                                    240,
+                                    5
+                            ),
+                            particles.pulseLine(
+                                    e.getPlayer().getWorld(),
+                                    new Vector(ends[0].getX(), y, ends[0].getZ()),
+                                    new Vector(ends[0].getX(), y, ends[1].getZ() + 1),
+                                    Color.YELLOW,
+                                    .5f,
+                                    240,
+                                    5
+                            ),
+                            particles.pulseLine(
+                                    e.getPlayer().getWorld(),
+                                    new Vector(ends[1].getX() + 1, y, ends[0].getZ()),
+                                    new Vector(ends[1].getX() + 1, y, ends[1].getZ() + 1),
+                                    Color.YELLOW,
+                                    .5f,
+                                    240,
+                                    5
+                            ),
+                            particles.pulseLine(
+                                    e.getPlayer().getWorld(),
+                                    new Vector(ends[0].getX(), y, ends[1].getZ() + 1),
+                                    new Vector(ends[1].getX() + 1, y, ends[1].getZ() + 1),
+                                    Color.YELLOW,
+                                    .5f,
+                                    240,
+                                    5
+                            )
+                    );
+                    Await.playerCommand(
+                            e.getPlayer(),
+                            "yes",
+                            new AwaitTimedConsumer<>() {
+                                @Override
+                                public int ticks() {
+                                    return 20 * 60;
+                                }
+
+                                @Override
+                                public void accept(AwaitConsumer<CommandData> consumer, CommandData obj) {
+                                    particleJob.stop();
+                                    transactionManager.confirm(
+                                            data.getPlayer(),
+                                            employee.getCompany().getUuid(),
+                                            TransactionManager.BANK,
+                                            /*6400*/size.getProduct() * PriceConst.AREA_BLOCK,
+                                            size.getX() + "x" + size.getY() + " firemní areál\n" + ChatColor.GRAY + "Výdaje: " + ChatColor.WHITE + "+ " +
+                                                    transactionManager.printMoney(expenseAmount) + "\n" +
+                                                    "Po zrušení areálu bude vyplacená záloha vrácena.",
+                                            PaymentType.COMPANY_AREA,
+                                            player -> {
+                                                Expense expense = new Expense();
+                                                expense.setUuid(employee.getCompany().getUuid());
+                                                expense.setExpenseType(PaymentType.COMPANY_AREA);
+                                                expense.setAmount(expenseAmount);
+                                                expense.save();
+
+                                                CompanyArea companyArea = new CompanyArea();
+                                                companyArea.setCompany(employee.getCompany());
+                                                companyArea.setStart(new Int2((int) ends[0].getX(), (int) ends[0].getZ()));
+                                                companyArea.setEnd(new Int2((int) ends[1].getX(), (int) ends[1].getZ()));
+                                                companyArea.save();
+
+                                                data.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Areál pro tvoji společnost byl úspěšně vytvořen.");
+                                            },
+                                            player -> {
+                                            }
+                                    );
+                                    consumer.dismiss();
+                                    Await.dismissPlayerCommand(e.getPlayer(), "no");
+                                }
+                            }
+                    );
+                    Await.playerCommand(
+                            e.getPlayer(),
+                            "no",
+                            new AwaitTimedConsumer<>() {
+                                @Override
+                                public int ticks() {
+                                    return 20 * 60;
+                                }
+
+                                @Override
+                                public void accept(AwaitConsumer<CommandData> consumer, CommandData obj) {
+                                    particleJob.stop();
+                                    consumer.dismiss();
+                                    Await.dismissPlayerCommand(e.getPlayer(), "yes");
+                                }
+                            }
+                    );
+                }
         );
-        return new InfoCommandResponse("OK AREA!");
+        return new InfoCommandResponse("Použij tento nástroj pro označení hranic.\n" +
+                "Použij levé tlačítko myši pro nastavení prvního rohu a poté použij pravé tlačítko myši pro nastavení protějšího rohu.\n" +
+                "Velikost areálu bude automaticky vypočítáná a zobrazena po dobu jedné minuty. Tento čas využij pro kontrolu, a pro finální rozhodnutí " +
+                "použij příkaz " + ChatColor.GOLD + "/yes" + ChatColor.AQUA + " nebo " + ChatColor.GOLD + "/no");
+    }
+
+    private Object onCompanyManageStock(CommandData data) {
+        return new InfoCommandResponse("OK");
     }
 }

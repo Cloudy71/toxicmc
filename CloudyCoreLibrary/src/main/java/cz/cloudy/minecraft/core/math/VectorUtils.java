@@ -38,4 +38,22 @@ public class VectorUtils {
 //        );
 //        return newPosition.subtract(originalPosition).normalize();
     }
+
+    public static void boundingBoxNormalize(Vector firstEdge, Vector secondEdge) {
+        if (firstEdge.getX() > secondEdge.getX()) {
+            double x = firstEdge.getX();
+            firstEdge.setX(secondEdge.getX());
+            secondEdge.setX(x);
+        }
+        if (firstEdge.getY() > secondEdge.getY()) {
+            double y = firstEdge.getY();
+            firstEdge.setY(secondEdge.getY());
+            secondEdge.setY(y);
+        }
+        if (firstEdge.getZ() > secondEdge.getZ()) {
+            double z = firstEdge.getZ();
+            firstEdge.setZ(secondEdge.getZ());
+            secondEdge.setZ(z);
+        }
+    }
 }

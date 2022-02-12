@@ -47,12 +47,12 @@
             <artifactId>annotations</artifactId>
             <version>22.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-            <version>${papermc.version}</version>
-            <scope>provided</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.spigotmc</groupId>-->
+<!--            <artifactId>spigot</artifactId>-->
+<!--            <version>${papermc.version}</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
         <!--        <dependency>-->
         <!--            <groupId>org.spigotmc</groupId>-->
         <!--            <artifactId>spigot-api</artifactId>-->
@@ -136,7 +136,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                    <outputDirectory>E:/Games/Minecraft/toxicmc/plugins</outputDirectory>
+                    <outputDirectory>D:/Games/Minecraft/toxicmc/plugins</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>
