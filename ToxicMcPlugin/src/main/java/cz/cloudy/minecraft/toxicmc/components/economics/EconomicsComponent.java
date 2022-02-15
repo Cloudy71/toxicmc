@@ -212,7 +212,7 @@ public class EconomicsComponent
         if (employee != null) {
             data.player().setMetadata(ToxicConstants.PLAYER_EMPLOYEE, new FixedMetadataValue(getPlugin(), employee));
             if (employee.getLevel() == PlayerEmployee.LEVEL_OWNER)
-                employee.getCompany().getExpenses(true);
+                employee.getCompany().getExpenses();
         }
 
         data.player().sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Aktuální stav účtu: " + ChatColor.RESET +

@@ -19,4 +19,5 @@ public abstract class ToxicConstants
     public static final String BANNER_ITEM_FRAMES = "bannerItemFrames";
     public static final String ITEM_COMPANY_TOOL_NAME = ChatColor.DARK_AQUA + "Firemní nástroj";
     public static final String ITEM_LORE_USAGE_AREA = ChatColor.GOLD + "Tvoření areálu";
+    public static final String ITEM_LORE_USAGE_STOCK = ChatColor.GOLD + "Tvoření skladu";
 }

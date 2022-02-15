@@ -26,7 +26,7 @@ public abstract class DatabaseEntity {
     @Size(Size.IDSize)
     private long id = -1;
 
-    protected boolean    replicated = false;
+    protected boolean replicated = false;
     protected FetchLevel fetchLevel = FetchLevel.Full;
 
     protected DatabaseEntity() {
@@ -104,16 +104,25 @@ public abstract class DatabaseEntity {
     }
 
     /**
+     *
+     * @param $fetchLevel
+     * @return
+     */
+    public DatabaseEntity load(FetchLevel $fetchLevel) {
+        if (fetchLevel == $fetchLevel || fetchLevel.isLowerThan($fetchLevel))
+            return this;
+        ComponentLoader.get(Database.class).loadEntity(this, $fetchLevel);
+        fetchLevel = $fetchLevel;
+        return this;
+    }
+
+    /**
      * This fetches all object data by its primary id
      *
      * @return Fully loaded current entity object
      */
     public DatabaseEntity load() {
-        if (fetchLevel == FetchLevel.Full)
-            return this;
-        ComponentLoader.get(Database.class).loadEntity(this, FetchLevel.Full);
-        fetchLevel = FetchLevel.Full;
-        return this;
+        return load(FetchLevel.Full);
     }
 
     /**

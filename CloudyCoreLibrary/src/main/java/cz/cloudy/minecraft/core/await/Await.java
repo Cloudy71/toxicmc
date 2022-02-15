@@ -3,17 +3,20 @@ package cz.cloudy.minecraft.core.await;
 import cz.cloudy.minecraft.core.componentsystem.types.CommandData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.*;
 
 // TODO: Add timed consumers
 public class Await {
-    private static final Map<Class<? extends Event>, Map<Object, List<AwaitConsumer<?>>>> events =
+    protected static final Map<Class<? extends Event>, Map<Object, List<AwaitConsumer<?>>>> events =
             new HashMap<>();
-    private static final Map<String, Map<UUID, List<AwaitConsumer<CommandData>>>> commands =
+    protected static final Map<String, Map<UUID, List<AwaitConsumer<CommandData>>>> commands =
             new HashMap<>();
-    private static final Set<AwaitConsumer<?>> dismissedConsumersList = new HashSet<>();
+    protected static final Set<AwaitConsumer<?>> dismissedConsumersList = new HashSet<>();
 
 //    private static final List<AwaitConsumer<?>> dismissedConsumersList = new ArrayList<>();
 //    private static AwaitConsumer<?> currentConsumer = null;

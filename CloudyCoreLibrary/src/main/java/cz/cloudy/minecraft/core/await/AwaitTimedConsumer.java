@@ -22,6 +22,7 @@ public interface AwaitTimedConsumer<T> extends AwaitConsumer<T> {
                 CoreRunnerPlugin.singleton,
                 () -> {
                     logger.info("TIME DISMISS");
+                    timeout();
                     AwaitConsumer.super.dismiss();
                     tasks.remove(self);
                 },
@@ -43,9 +44,11 @@ public interface AwaitTimedConsumer<T> extends AwaitConsumer<T> {
 
     @Override
     default void process(T obj) {
-
         AwaitConsumer.super.process(obj);
     }
 
     int ticks();
+
+    default void timeout() {
+    }
 }

@@ -72,40 +72,40 @@ public class MysqlDatabaseMapper
     @Override
     public String fieldScanToFieldDefinition(FieldScan fieldScan) {
         return fieldScan.column().value() +
-               " " +
-               mapFieldScanToDatabaseType(fieldScan) +
-               " " +
-               (fieldScan.nullable() == null ? "NOT NULL" : "") +
-               " " +
-               (fieldScan.autoIncrement() != null ? "AUTO_INCREMENT" : "") +
-               " " +
-               (fieldScan.default_() != null ? "DEFAULT " + fieldScan.default_().value() : "");
+                " " +
+                mapFieldScanToDatabaseType(fieldScan) +
+                " " +
+                (fieldScan.nullable() == null ? "NOT NULL" : "") +
+                " " +
+                (fieldScan.autoIncrement() != null ? "AUTO_INCREMENT" : "") +
+                " " +
+                (fieldScan.default_() != null ? "DEFAULT " + fieldScan.default_().value() : "");
     }
 
     @Override
     public String fieldScanToConstraint(FieldScan fieldScan) {
         if (fieldScan.primaryKey() != null) {
             return "CONSTRAINT PK_" +
-                   fieldScan.classScan().table().value() +
-                   "_" + fieldScan.column().value() +
-                   " PRIMARY KEY (" +
-                   fieldScan.column().value() +
-                   ")";
+                    fieldScan.classScan().table().value() +
+                    "_" + fieldScan.column().value() +
+                    " PRIMARY KEY (" +
+                    fieldScan.column().value() +
+                    ")";
         }
         if (fieldScan.foreignKey() != null) {
             FieldScan ref = ComponentLoader.get(DatabaseEntityMapper.class)
-                                           .getPrimaryKeyFieldScan((Class<? extends DatabaseEntity>) fieldScan.field().getType());
+                    .getPrimaryKeyFieldScan((Class<? extends DatabaseEntity>) fieldScan.field().getType());
             return "CONSTRAINT FK_" +
-                   fieldScan.classScan().table().value() +
-                   "_" +
-                   fieldScan.column().value() +
-                   " " +
-                   "FOREIGN KEY (" +
-                   fieldScan.column().value() +
-                   ") REFERENCES " +
-                   ref.classScan().table().value() +
-                   "(" +
-                   ref.column().value() + ")";
+                    fieldScan.classScan().table().value() +
+                    "_" +
+                    fieldScan.column().value() +
+                    " " +
+                    "FOREIGN KEY (" +
+                    fieldScan.column().value() +
+                    ") REFERENCES " +
+                    ref.classScan().table().value() +
+                    "(" +
+                    ref.column().value() + ")";
 
         }
         // TODO: Constraint types depends on Protected annotation
@@ -121,21 +121,21 @@ public class MysqlDatabaseMapper
             if (fieldScan.index() != null) {
                 indexList.add(
                         "CREATE " +
-                        (fieldScan.index().unique() ? "UNIQUE " : "") +
-                        "INDEX IDX_" +
-                        fieldScan.classScan().table().value() +
-                        "_" +
-                        fieldScan.column().value() +
-                        " ON " +
-                        fieldScan.classScan().table().value() +
-                        " (" +
-                        fieldScan.column().value() +
-                        ")"
+                                (fieldScan.index().unique() ? "UNIQUE " : "") +
+                                "INDEX IDX_" +
+                                fieldScan.classScan().table().value() +
+                                "_" +
+                                fieldScan.column().value() +
+                                " ON " +
+                                fieldScan.classScan().table().value() +
+                                " (" +
+                                fieldScan.column().value() +
+                                ")"
                 );
             }
             if (fieldScan.multiIndex() != null) {
                 multiIndexMap.computeIfAbsent(fieldScan.multiIndex().value(), aByte -> new ArrayList<>(List.of(fieldScan.classScan().table().value())))
-                             .add(fieldScan.column().value());
+                        .add(fieldScan.column().value());
             }
         }
 
@@ -143,17 +143,17 @@ public class MysqlDatabaseMapper
             String tableName = entry.getValue().get(0);
             entry.getValue().remove(0);
             String idxString = "CREATE INDEX MIDX_" +
-                               entry.getKey() +
-                               " ON " +
-                               tableName +
-                               " (";
+                    entry.getKey() +
+                    " ON " +
+                    tableName +
+                    " (";
             StringBuilder fields = new StringBuilder();
             for (String s : entry.getValue()) {
                 fields.append(fields.length() > 0 ? "," : "")
-                      .append(s);
+                        .append(s);
             }
             idxString += fields +
-                         ")";
+                    ")";
             indexList.add(idxString);
 
         }
@@ -161,7 +161,8 @@ public class MysqlDatabaseMapper
     }
 
     private void writeFetchDataForEntityType(Class<? extends DatabaseEntity> clazz, String prefix, String conditions, FetchLevel fetchLevel,
-                                             StringBuilder selectQuery, List<String> joinQuery, Map<String, String> translationMap) {
+                                             StringBuilder selectQuery, List<String> joinQuery, Map<String, String> translationMap,
+                                             List<FieldScan> ignoreForeignScans) {
         DatabaseEntityMapper entityMapper = ComponentLoader.get(DatabaseEntityMapper.class);
         List<FieldScan> fields = entityMapper.getFieldScansForEntityClass(clazz);
         ClassScan classScan = entityMapper.getClassScanForEntityClass(clazz);
@@ -178,7 +179,10 @@ public class MysqlDatabaseMapper
             if (field.foreignKey() != null) {
                 Class<? extends DatabaseEntity> foreignClass = (Class<? extends DatabaseEntity>) field.field().getType();
                 FieldScan foreignPrimaryKeyField = entityMapper.getPrimaryKeyFieldScan(foreignClass);
-                if (field.lazy() == null || fetchLevel == FetchLevel.Full) {
+                boolean circularDependency = foreignClass.isAssignableFrom(field.field().getType());
+                if (!ignoreForeignScans.contains(field) && field.lazy() == null || fetchLevel == FetchLevel.Full) {
+                    if (circularDependency)
+                        ignoreForeignScans.add(field);
                     writeFetchDataForEntityType(
                             foreignClass,
                             prefix + field.column().value() + "__",
@@ -186,18 +190,19 @@ public class MysqlDatabaseMapper
                             field.lazy() == null ? fetchLevel : FetchLevel.Primitive,
                             selectQuery,
                             joinQuery,
-                            translationMap
+                            translationMap,
+                            ignoreForeignScans
                     );
                 } else {
                     selectQuery.append(!selectQuery.isEmpty() ? "," : "")
-                               .append(tableLabel)
-                               .append(".")
-                               .append(field.column().value())
-                               .append(" AS ")
-                               .append(prefix)
-                               .append(field.column().value())
-                               .append("__")
-                               .append(foreignPrimaryKeyField.column().value());
+                            .append(tableLabel)
+                            .append(".")
+                            .append(field.column().value())
+                            .append(" AS ")
+                            .append(prefix)
+                            .append(field.column().value())
+                            .append("__")
+                            .append(foreignPrimaryKeyField.column().value());
                     translationMap.put(
                             prefix + field.column().value() + "__" + foreignPrimaryKeyField.column().value(),
                             tableLabel + "." + field.column().value()
@@ -205,12 +210,12 @@ public class MysqlDatabaseMapper
                 }
             } else if (field.lazy() == null || fetchLevel == FetchLevel.Full) {
                 selectQuery.append(!selectQuery.isEmpty() ? "," : "")
-                           .append(tableLabel)
-                           .append(".")
-                           .append(field.column().value())
-                           .append(" AS ")
-                           .append(prefix)
-                           .append(field.column().value());
+                        .append(tableLabel)
+                        .append(".")
+                        .append(field.column().value())
+                        .append(" AS ")
+                        .append(prefix)
+                        .append(field.column().value());
                 translationMap.put(
                         prefix + field.column().value(),
                         tableLabel + "." + field.column().value()
@@ -232,7 +237,8 @@ public class MysqlDatabaseMapper
                 fetchLevel,
                 select,
                 joins,
-                translationMap
+                translationMap,
+                new ArrayList<>()
         );
 
         Preconditions.checkState(!joins.isEmpty());

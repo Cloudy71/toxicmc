@@ -12,12 +12,14 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import cz.cloudy.minecraft.core.LoggerFactory;
 import cz.cloudy.minecraft.core.componentsystem.ComponentLoader;
+import cz.cloudy.minecraft.core.componentsystem.annotations.Cached;
 import cz.cloudy.minecraft.core.data_transforming.transformers.UUIDToStringTransformer;
 import cz.cloudy.minecraft.core.database.Database;
 import cz.cloudy.minecraft.core.database.DatabaseEntity;
 import cz.cloudy.minecraft.core.database.annotation.*;
 import cz.cloudy.minecraft.core.database.enums.FetchLevel;
 import cz.cloudy.minecraft.messengersystem.pojo.UserAccount;
+import cz.cloudy.minecraft.toxicmc.components.economics.enums.AreaType;
 import org.slf4j.Logger;
 
 import java.time.ZonedDateTime;
@@ -87,33 +89,67 @@ public class Company
     // ==========================================
     private static final Logger logger = LoggerFactory.getLogger(Company.class);
 
-    private static LoadingCache<UUID, Set<Expense>> expenseCache =
-            CacheBuilder.newBuilder()
-                        .build(
-                                new CacheLoader<>() {
-                                    @Override
-                                    public Set<Expense> load(UUID key) throws Exception {
-                                        return ComponentLoader.get(Database.class).findEntities(
-                                                Expense.class,
-                                                "uuid = :uuid",
-                                                ImmutableMap.of("uuid", key.toString()),
-                                                FetchLevel.Primitive
-                                        );
-                                    }
-                                }
-                        );
+//    private static LoadingCache<UUID, Set<Expense>> expenseCache =
+//            CacheBuilder.newBuilder()
+//                    .build(
+//                            new CacheLoader<>() {
+//                                @Override
+//                                public Set<Expense> load(UUID key) throws Exception {
+//                                    return ComponentLoader.get(Database.class).findEntities(
+//                                            Expense.class,
+//                                            "uuid = :uuid",
+//                                            ImmutableMap.of("uuid", key.toString()),
+//                                            FetchLevel.Primitive
+//                                    );
+//                                }
+//                            }
+//                    );
 
+    @Join(table = BankAccount.class, where = "uuid = :uuid")
     public BankAccount getBankAccount() {
-        return ComponentLoader.get(Database.class).findEntity(BankAccount.class, getUuid());
+        return null;
     }
 
-    public Set<Expense> getExpenses(boolean refresh) {
-        if (refresh)
-            expenseCache.refresh(uuid);
-        return expenseCache.getUnchecked(uuid);
-    }
-
+    @Join(table = Expense.class, where = "uuid = :uuid")
     public Set<Expense> getExpenses() {
-        return getExpenses(false);
+        return null;
     }
+
+    @Join(table = CompanyArea.class, where = "company.uuid = :uuid")
+    public CompanyArea getAreas() {
+        return null;
+    }
+
+    @Join(table = CompanyArea.class, where = "company.uuid = :uuid AND area_type = " + AreaType.STOCK_VALUE)
+    public CompanyArea getStockArea() {
+        return null;
+    }
+
+    @Join(table = CompanyArea.class, where = "company.uuid = :uuid AND area_type = " + AreaType.SHOP_VALUE)
+    public Set<CompanyArea> getShopAreas() {
+        return null;
+    }
+
+
+//    @Cached
+//    public Set<Expense> getExpenses() {
+//        return ComponentLoader.get(Database.class).findEntities(
+//                Expense.class,
+//                "uuid = :uuid",
+//                ImmutableMap.of("uuid", uuid.toString()),
+//                FetchLevel.Primitive
+//        );
+//    }
+
+//    @Deprecated
+//    public Set<Expense> getExpenses(boolean refresh) {
+//        if (refresh)
+//            expenseCache.refresh(uuid);
+//        return expenseCache.getUnchecked(uuid);
+//    }
+
+//    @Deprecated
+//    public Set<Expense> getExpenses() {
+//        return getExpenses(false);
+//    }
 }

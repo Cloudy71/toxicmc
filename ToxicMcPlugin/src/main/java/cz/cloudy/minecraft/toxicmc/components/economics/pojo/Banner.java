@@ -74,35 +74,42 @@ public class Banner
 
     // ================================================
 
-    private static LoadingCache<Long, Set<BannerPart>> bannerPartCache =
-            CacheBuilder.newBuilder()
-                        .build(
-                                new CacheLoader<Long, Set<BannerPart>>() {
-                                    @Override
-                                    public Set<BannerPart> load(Long key) throws Exception {
-                                        return ComponentLoader.get(Database.class).findEntities(
-                                                                      BannerPart.class,
-                                                                      "banner.id = :id AND is_used = 1",
-                                                                      ImmutableMap.of("id", key),
-                                                                      FetchLevel.Primitive
-                                                              ).stream()
-                                                              .sorted(Comparator.comparingLong(BannerPart::getId))
-                                                              .collect(Collectors.toCollection(LinkedHashSet::new));
-                                    }
-                                }
-                        );
+//    private static LoadingCache<Long, Set<BannerPart>> bannerPartCache =
+//            CacheBuilder.newBuilder()
+//                        .build(
+//                                new CacheLoader<Long, Set<BannerPart>>() {
+//                                    @Override
+//                                    public Set<BannerPart> load(Long key) throws Exception {
+//                                        return ComponentLoader.get(Database.class).findEntities(
+//                                                                      BannerPart.class,
+//                                                                      "banner.id = :id AND is_used = 1",
+//                                                                      ImmutableMap.of("id", key),
+//                                                                      FetchLevel.Primitive
+//                                                              ).stream()
+//                                                              .sorted(Comparator.comparingLong(BannerPart::getId))
+//                                                              .collect(Collectors.toCollection(LinkedHashSet::new));
+//                                    }
+//                                }
+//                        );
 
     private Int2 placeSize;
 
-    public Set<BannerPart> getBannerParts(boolean refresh) {
-        if (refresh)
-            bannerPartCache.refresh(getId());
-        return bannerPartCache.getUnchecked(getId());
+    @Join(table = BannerPart.class, where = "banner.id = :id AND is_used = 1")
+    public Set<BannerPart> getBannerParts() {
+        return null;
     }
 
-    public Set<BannerPart> getBannerParts() {
-        return getBannerParts(false);
-    }
+//    @Deprecated
+//    public Set<BannerPart> getBannerParts(boolean refresh) {
+//        if (refresh)
+//            bannerPartCache.refresh(getId());
+//        return bannerPartCache.getUnchecked(getId());
+//    }
+//
+//    @Deprecated
+//    public Set<BannerPart> getBannerParts() {
+//        return getBannerParts(false);
+//    }
 
     public Int2 getPlaceSize() {
         return placeSize;

@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 public @interface Cached {
     /**
      * If set to true, there is its own caching system implemented.
-     * Otherwise parameter-value caching system is used.
+     * Otherwise, parameter-value caching system is used.
      */
     boolean informative() default false;
 }

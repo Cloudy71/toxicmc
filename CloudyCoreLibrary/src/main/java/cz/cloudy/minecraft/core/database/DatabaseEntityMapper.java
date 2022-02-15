@@ -38,9 +38,9 @@ public class DatabaseEntityMapper
         implements IComponent {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseEntityMapper.class);
 
-    protected static final Map<Class<? extends DatabaseEntity>, ClassScan>       mappedClasses   = new HashMap<>();
-    protected static final Map<Class<? extends DatabaseEntity>, List<FieldScan>> mappedFields    = new HashMap<>();
-    protected static final List<Class<? extends DatabaseEntity>>                 stashedEntities = new ArrayList<>();
+    protected static final Map<Class<? extends DatabaseEntity>, ClassScan> mappedClasses = new HashMap<>();
+    protected static final Map<Class<? extends DatabaseEntity>, List<FieldScan>> mappedFields = new HashMap<>();
+    protected static final List<Class<? extends DatabaseEntity>> stashedEntities = new ArrayList<>();
 
 //    protected static final com.google.common.collect.Table<Class<? extends DatabaseEntity>, Object, DatabaseEntity> entityTable =
 //            HashBasedTable.create();
@@ -92,6 +92,10 @@ public class DatabaseEntityMapper
             return null;
         if (fieldScan.transform() != null)
             return ((IDataTransformer) dataTransformer.getUnknownDataTransformer(fieldScan.transform().value())).transform0to1(value);
+        if (fieldScan.foreignKey() != null) {
+            DatabaseEntity foreignEntity = (DatabaseEntity) value;
+            return getFieldScanDatabaseValue(foreignEntity, getPrimaryKeyFieldScan(foreignEntity.getClass()));
+        }
         return value;
     }
 
@@ -114,9 +118,9 @@ public class DatabaseEntityMapper
             newType = Boolean.class;
 
         if ((currentType != String.class && currentType != Byte.class && currentType != Short.class && currentType != Integer.class &&
-             currentType != Long.class && currentType != Float.class && currentType != Double.class && currentType != Boolean.class) ||
-            (newType != String.class && newType != Byte.class && newType != Short.class && newType != Integer.class &&
-             newType != Long.class && newType != Float.class && newType != Double.class && newType != Boolean.class))
+                currentType != Long.class && currentType != Float.class && currentType != Double.class && currentType != Boolean.class) ||
+                (newType != String.class && newType != Byte.class && newType != Short.class && newType != Integer.class &&
+                        newType != Long.class && newType != Float.class && newType != Double.class && newType != Boolean.class))
             return value;
 
         if (currentType == String.class) {
@@ -198,6 +202,7 @@ public class DatabaseEntityMapper
         return value;
     }
 
+    // TODO: Join scans
     protected void mapEntityFields(Class<? extends DatabaseEntity> clazz, List<Class<? extends DatabaseEntity>> childClasses) {
         childClasses.add(clazz);
         // TODO: Fix mapping, with two entities, abstract class does not map second enttiy object with primary key
@@ -227,8 +232,8 @@ public class DatabaseEntityMapper
 
             for (Class<? extends DatabaseEntity> childClass : childClasses) {
                 if ((mappedFields.containsKey(childClass) &&
-                     mappedFields.get(childClass).stream().anyMatch(fieldScan -> fieldScan.column().value().equals(column.value()))) ||
-                    (primaryKey != null && getPrimaryKeyFieldScan(childClass) != null))
+                        mappedFields.get(childClass).stream().anyMatch(fieldScan -> fieldScan.column().value().equals(column.value()))) ||
+                        (primaryKey != null && getPrimaryKeyFieldScan(childClass) != null))
                     continue;
                 ClassScan classScan = mappedClasses.getOrDefault(childClass, null);
                 FieldScan fieldScan = new FieldScan(
@@ -321,9 +326,9 @@ public class DatabaseEntityMapper
             return null;
         List<FieldScan> scans = mappedFields.get(clazz);
         return scans.stream()
-                    .filter(fieldScan -> fieldScan.primaryKey() != null)
-                    .findFirst()
-                    .orElse(null);
+                .filter(fieldScan -> fieldScan.primaryKey() != null)
+                .findFirst()
+                .orElse(null);
     }
 
     protected <T extends DatabaseEntity> T mapDataToNewEntity(Class<T> clazz, Map<String, Object> data, String dataPrefix, FetchLevel fetchLevel) {
@@ -383,9 +388,9 @@ public class DatabaseEntityMapper
     protected void mapDataToEntity(DatabaseEntity entity, Map<String, Object> data, String dataPrefix, FetchLevel fetchLevel) {
         List<FieldScan> fields = getFieldScansForEntityClass(entity.getClass());
         fields = fields.stream()
-                       .sorted((o1, o2) -> o1.primaryKey() != null ? -1
-                               : (o2.primaryKey() != null ? 1 : (o1.lazy() == null ? -1 : (o2.lazy() == null ? 1 : 0))))
-                       .collect(Collectors.toList());
+                .sorted((o1, o2) -> o1.primaryKey() != null ? -1
+                        : (o2.primaryKey() != null ? 1 : (o1.lazy() == null ? -1 : (o2.lazy() == null ? 1 : 0))))
+                .collect(Collectors.toList());
         // TODO: Go field by field and search for values with correct field key
         // TODO: It's better than filling values by data map, because we could get non primary key attribute for foreign object first
         for (FieldScan field : fields) {
@@ -531,6 +536,7 @@ public class DatabaseEntityMapper
         entity.replicated = true;
         cache.addEntity(entity, primaryKeyValue);
         cache.clearAllCacheEntities(entity.getClass());
+        DatabaseAspect.clearJoinsFor(entity.getClass(), null);
     }
 
     protected void deleteEntity(DatabaseEntity entity) {
@@ -542,5 +548,6 @@ public class DatabaseEntityMapper
         cache.removeEntity(entity, primaryKeyValue);
         database.getProcessor().deleteEntity(entity);
         cache.clearAllCacheEntities(entity.getClass());
+        DatabaseAspect.clearJoinsFor(entity.getClass(), entity);
     }
 }
