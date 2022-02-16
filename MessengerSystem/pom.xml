@@ -20,12 +20,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>cz.cloudy.minecraft</groupId>
-            <artifactId>CloudyCoreLibrary</artifactId>
-            <version>1.18.3-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -35,7 +29,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                    <outputDirectory>D:/Games/Minecraft/toxicmc/plugins</outputDirectory>
+                    <outputDirectory>${jar.path}</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>

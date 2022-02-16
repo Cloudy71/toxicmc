@@ -18,6 +18,7 @@ import cz.cloudy.minecraft.core.data_transforming.DataTransformer;
 import cz.cloudy.minecraft.core.database.Database;
 import cz.cloudy.minecraft.core.database.enums.FetchLevel;
 import cz.cloudy.minecraft.core.game.ChestUtils;
+import cz.cloudy.minecraft.core.game.EntityUtils;
 import cz.cloudy.minecraft.messengersystem.MessengerComponent;
 import cz.cloudy.minecraft.toxicmc.ToxicConstants;
 import cz.cloudy.minecraft.toxicmc.components.protection.pojo.ChestProtection;
@@ -56,6 +57,9 @@ public class ChestProtectionComponent
     @Component
     private ChestUtils chestUtils;
 
+    @Component
+    private EntityUtils entityUtils;
+
     private Set<ChestProtection> protections;
 
     @Override
@@ -66,6 +70,8 @@ public class ChestProtectionComponent
                 null,
                 FetchLevel.Primitive
         );
+        // TODO: Caching all protections isn't recommended since the server memory is small, so we should check for protection after interaction with chest
+        //          then caching the found value including null so we don't need to check for it again.
         for (ChestProtection protection : protections) {
             protection.getBlock().setMetadata(ToxicConstants.CHEST_PROTECTION, new FixedMetadataValue(getPlugin(), protection));
         }
@@ -80,49 +86,6 @@ public class ChestProtectionComponent
         if (chestBlock == null)
             return null;
         return chestBlock.getLocation();
-    }
-
-    @CommandListener("chest")
-    @CheckCondition(CheckCondition.SENDER_IS_PLAYER)
-    private Object onChestCommand(CommandData data) {
-        if (data.arguments().length < 1)
-            return new InfoCommandResponse("Specifikuj požadavek.");
-
-        String action = data.arguments()[0];
-        CommandData newCommandData = new CommandData(
-                data.sender(),
-                data.command(),
-                Arrays.copyOfRange(data.arguments(), 1, data.arguments().length)
-        );
-
-        if (action.equals("lock"))
-            return onChestLock(newCommandData);
-
-        return new InfoCommandResponse("Neznámý požadavek.");
-    }
-
-    private Object onChestLock(CommandData data) {
-        Location chestLocation = getChestLocation(data.getPlayer());
-        if (chestLocation == null)
-            return new InfoCommandResponse("Nemíříš na žádnou truhlu.");
-
-        Block block = chestLocation.getBlock();
-        if (block.hasMetadata(ToxicConstants.CHEST_PROTECTION)) {
-            ChestProtection chestProtection = (ChestProtection) block.getMetadata(ToxicConstants.CHEST_PROTECTION).get(0).value();
-            Preconditions.checkNotNull(chestProtection, "ChestProtection is null");
-            if (chestProtection.getOwner() == null || chestProtection.getOwner().getOfflinePlayer().getUniqueId() != data.getPlayer().getUniqueId())
-                return new InfoCommandResponse("Tato truhla je již uzamčena někým jiným.");
-            return new InfoCommandResponse("Tato truhla je již uzamčena tebou.");
-        }
-
-        ChestProtection chestProtection = new ChestProtection();
-        chestProtection.setOwner(messenger.getUserAccount(data.getPlayer()));
-        chestProtection.setBlock(block);
-        chestProtection.save();
-        protections.add(chestProtection);
-        block.setMetadata(ToxicConstants.CHEST_PROTECTION, new FixedMetadataValue(getPlugin(), chestProtection));
-
-        return new InfoCommandResponse("Truhla byla úspěšně uzamčena.");
     }
 
     @EventHandler
@@ -162,5 +125,70 @@ public class ChestProtectionComponent
 
         e.setCancelled(true);
         e.getPlayer().sendMessage(ChatColor.AQUA + "Tato truhla je uzamčená.");
+    }
+
+    @CommandListener("chest")
+    @CheckCondition(CheckCondition.SENDER_IS_PLAYER)
+    private Object onChestCommand(CommandData data) {
+        if (data.arguments().length < 1)
+            return new InfoCommandResponse("Specifikuj požadavek.");
+
+        String action = data.arguments()[0];
+        CommandData newCommandData = new CommandData(
+                data.sender(),
+                data.command(),
+                Arrays.copyOfRange(data.arguments(), 1, data.arguments().length)
+        );
+
+        if (action.equals("lock"))
+            return onChestLock(newCommandData);
+        if (action.equals("unlock"))
+            return onChestUnlock(newCommandData);
+
+        return new InfoCommandResponse("Neznámý požadavek.");
+    }
+
+    private Object onChestLock(CommandData data) {
+        Location chestLocation = getChestLocation(data.getPlayer());
+        if (chestLocation == null)
+            return new InfoCommandResponse("Nemíříš na žádnou truhlu.");
+
+        Block block = chestLocation.getBlock();
+        if (block.hasMetadata(ToxicConstants.CHEST_PROTECTION)) {
+            ChestProtection chestProtection = entityUtils.getMetadata(block, ToxicConstants.CHEST_PROTECTION);
+            Preconditions.checkNotNull(chestProtection, "ChestProtection is null");
+            if (chestProtection.getOwner() == null || chestProtection.getOwner().getOfflinePlayer().getUniqueId() != data.getPlayer().getUniqueId())
+                return new InfoCommandResponse("Tato truhla je již uzamčena někým jiným.");
+            return new InfoCommandResponse("Tato truhla je již uzamčena tebou.");
+        }
+
+        ChestProtection chestProtection = new ChestProtection();
+        chestProtection.setOwner(messenger.getUserAccount(data.getPlayer()));
+        chestProtection.setBlock(block);
+        chestProtection.save();
+        protections.add(chestProtection);
+        block.setMetadata(ToxicConstants.CHEST_PROTECTION, new FixedMetadataValue(getPlugin(), chestProtection));
+
+        return new InfoCommandResponse("Truhla byla úspěšně uzamčena.");
+    }
+
+    private Object onChestUnlock(CommandData data) {
+        Location chestLocation = getChestLocation(data.getPlayer());
+        if (chestLocation == null)
+            return new InfoCommandResponse("Nemíříš na žádnou truhlu.");
+
+        Block block = chestLocation.getBlock();
+        if (!block.hasMetadata(ToxicConstants.CHEST_PROTECTION))
+            return new InfoCommandResponse("Tato truhla není uzamčena.");
+
+        ChestProtection chestProtection = entityUtils.getMetadata(block, ToxicConstants.CHEST_PROTECTION);
+        Preconditions.checkNotNull(chestProtection, "ChestProtection is null");
+        if (chestProtection.getOwner() == null || chestProtection.getOwner().getOfflinePlayer().getUniqueId() != data.getPlayer().getUniqueId())
+            return new InfoCommandResponse("Nemůžeš odemknout truhlu někoho jiného.");
+
+        chestProtection.delete();
+        block.removeMetadata(ToxicConstants.CHEST_PROTECTION, getPlugin());
+        return new InfoCommandResponse("Truhla byla odemčena.");
+//        return new InfoCommandResponse("Tato truhla je již uzamčena tebou.");
     }
 }

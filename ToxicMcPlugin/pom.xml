@@ -24,6 +24,7 @@
             <groupId>cz.cloudy.minecraft</groupId>
             <artifactId>MessengerSystem</artifactId>
             <version>1.18-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -60,7 +61,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                    <outputDirectory>D:/Games/Minecraft/toxicmc/plugins</outputDirectory>
+                    <outputDirectory>${jar.path}</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>

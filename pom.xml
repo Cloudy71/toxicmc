@@ -9,7 +9,7 @@
     <packaging>pom</packaging>
     <version>1.18-SNAPSHOT</version>
     <modules>
-        <module>CloudyCoreLibrary</module>
+        <!--        <module>CloudyCoreLibrary</module>-->
         <module>MessengerSystem</module>
         <module>ToxicMcPlugin</module>
     </modules>
@@ -17,15 +17,32 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <papermc.version>1.18.1-R0.1-SNAPSHOT</papermc.version>
         <aspectj.version>1.9.8.RC1</aspectj.version>
+        <core.version>1.18.4-SNAPSHOT</core.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>lan-repository-releases</id>
+            <url>http://192.168.100.7:8001/releases</url>
+        </repository>
+        <repository>
+            <id>lan-repository-snapshots</id>
+            <url>http://192.168.100.7:8001/snapshots</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
             <version>${aspectj.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cloudy.minecraft</groupId>
+            <artifactId>CloudyCoreLibrary</artifactId>
+            <version>${core.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -36,11 +53,35 @@
                 <artifactId>aspectjrt</artifactId>
                 <version>${aspectj.version}</version>
             </dependency>
+            <dependency>
+                <groupId>cz.cloudy.minecraft</groupId>
+                <artifactId>CloudyCoreLibrary</artifactId>
+                <version>${core.version}</version>
+                <scope>compile</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${maven.multiModuleProjectDirectory}/main.properties</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -89,26 +130,55 @@
                     </dependency>
                 </dependencies>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-assembly-plugin</artifactId>-->
-<!--                <version>3.3.0</version>-->
-<!--                <configuration>-->
-<!--                    <appendAssemblyId>false</appendAssemblyId>-->
-<!--                    <descriptorRefs>-->
-<!--                        <descriptorRef>jar-with-dependencies</descriptorRef>-->
-<!--                    </descriptorRefs>-->
-<!--                </configuration>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>a-make-assembly</id>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>single</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeArtifactIds>CloudyCoreLibrary</includeArtifactIds>
+                            <outputDirectory>${jar.path}</outputDirectory>
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-jar-plugin</artifactId>-->
+            <!--                <version>2.4</version>-->
+            <!--                <configuration>-->
+            <!--                    <includes>-->
+            <!--                        <include>cz.cloudy.minecraft:CloudyCoreLibrary</include>-->
+            <!--                    </includes>-->
+            <!--                    <outputDirectory>${jar.path}</outputDirectory>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-assembly-plugin</artifactId>-->
+            <!--                <version>3.3.0</version>-->
+            <!--                <configuration>-->
+            <!--                    <appendAssemblyId>false</appendAssemblyId>-->
+            <!--                    <descriptorRefs>-->
+            <!--                        <descriptorRef>jar-with-dependencies</descriptorRef>-->
+            <!--                    </descriptorRefs>-->
+            <!--                </configuration>-->
+            <!--                <executions>-->
+            <!--                    <execution>-->
+            <!--                        <id>a-make-assembly</id>-->
+            <!--                        <phase>package</phase>-->
+            <!--                        <goals>-->
+            <!--                            <goal>single</goal>-->
+            <!--                        </goals>-->
+            <!--                    </execution>-->
+            <!--                </executions>-->
+            <!--            </plugin>-->
         </plugins>
     </build>
 
