@@ -15,6 +15,8 @@ import cz.cloudy.minecraft.core.componentsystem.types.CommandData;
 import cz.cloudy.minecraft.core.componentsystem.types.command_responses.ErrorCommandResponse;
 import cz.cloudy.minecraft.core.componentsystem.types.command_responses.InfoCommandResponse;
 import cz.cloudy.minecraft.core.database.Database;
+import cz.cloudy.minecraft.core.hashing.Hashing;
+import cz.cloudy.minecraft.core.hashing.HashingAlgorithm;
 import cz.cloudy.minecraft.messengersystem.pojo.UserAccount;
 import org.bukkit.Color;
 import org.bukkit.Particle;
@@ -33,6 +35,9 @@ public class AdminComponent
 
     @Component
     private Database database;
+
+    @Component
+    private Hashing hashing;
 
     @CommandListener("get_uuid")
     @CheckPermission(CheckPermission.OP)
@@ -98,5 +103,13 @@ public class AdminComponent
         }
 
         return new InfoCommandResponse("OK");
+    }
+
+    @CommandListener("generate_hash")
+    @CheckPermission(CheckPermission.OP)
+    @CheckCondition(CheckCondition.ARGS_IS_1)
+    private Object onGenerateHash(CommandData data) {
+        String hashed = hashing.hashStringHex(data.arguments()[0], HashingAlgorithm.SHA160, MessengerComponent.hashSalt);
+        return new InfoCommandResponse(hashed);
     }
 }

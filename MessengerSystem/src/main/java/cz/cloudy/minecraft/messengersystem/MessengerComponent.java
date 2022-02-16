@@ -50,7 +50,7 @@ public class MessengerComponent
         implements Listener, IComponent {
     private static final Logger logger = LoggerFactory.getLogger(MessengerComponent.class);
 
-    private static final String hashSalt = "pwsalt12569";
+    public static final String hashSalt = "pwsalt12569";
 
     @Component
     private Database database;
