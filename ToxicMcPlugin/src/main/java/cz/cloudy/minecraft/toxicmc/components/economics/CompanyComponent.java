@@ -20,7 +20,7 @@ import cz.cloudy.minecraft.core.componentsystem.types.command_responses.ErrorCom
 import cz.cloudy.minecraft.core.componentsystem.types.command_responses.InfoCommandResponse;
 import cz.cloudy.minecraft.core.database.Database;
 import cz.cloudy.minecraft.core.database.enums.FetchLevel;
-import cz.cloudy.minecraft.core.game.EntityUtils;
+import cz.cloudy.minecraft.core.game.MetaUtils;
 import cz.cloudy.minecraft.core.game.TextUtils;
 import cz.cloudy.minecraft.core.items.ItemStackBuilder;
 import cz.cloudy.minecraft.core.math.VectorUtils;
@@ -78,7 +78,7 @@ public class CompanyComponent
     private TransactionManager transactionManager;
 
     @Component
-    private EntityUtils entityUtils;
+    private MetaUtils metaUtils;
 
     @Component
     private ItemStackBuilder itemStackBuilder;
@@ -175,7 +175,7 @@ public class CompanyComponent
     private boolean canInteractOnChunk(Player player, Int2 chunk) {
         CompanyArea companyArea = getAnyCompanyAreaFromChunkVector(chunk);
         if (companyArea != null) {
-            PlayerEmployee playerEmployee = entityUtils.getMetadata(player, ToxicConstants.PLAYER_EMPLOYEE);
+            PlayerEmployee playerEmployee = metaUtils.getMetadata(player, ToxicConstants.PLAYER_EMPLOYEE);
             if (playerEmployee != null && companyArea.getCompany() == playerEmployee.getCompany())
                 companyArea = null;
         }
@@ -306,7 +306,7 @@ public class CompanyComponent
             return new InfoCommandResponse("Item frame musí být v horizontální poloze.");
 
         PlayerEmployee employee;
-        if ((employee = entityUtils.getMetadata(data.getPlayer(), ToxicConstants.PLAYER_EMPLOYEE)).getLevel() != PlayerEmployee.LEVEL_OWNER)
+        if ((employee = metaUtils.getMetadata(data.getPlayer(), ToxicConstants.PLAYER_EMPLOYEE)).getLevel() != PlayerEmployee.LEVEL_OWNER)
             return new ErrorCommandResponse("Nejsi vlastníkem společnosti");
         if (!isVectorInSelectedCompanyArea(employee.getCompany(), targetEntity.getLocation().toVector()))
             return new ErrorCommandResponse("Tento item frame musí ležet na pozemku společnosti.");
@@ -377,7 +377,7 @@ public class CompanyComponent
 
     private Object onCompanyManageArea(CommandData data) {
         PlayerEmployee employee;
-        if ((employee = entityUtils.getMetadata(data.getPlayer(), ToxicConstants.PLAYER_EMPLOYEE)).getLevel() != PlayerEmployee.LEVEL_OWNER)
+        if ((employee = metaUtils.getMetadata(data.getPlayer(), ToxicConstants.PLAYER_EMPLOYEE)).getLevel() != PlayerEmployee.LEVEL_OWNER)
             return new ErrorCommandResponse("Nejsi vlastníkem společnosti.");
 
         CompanyArea companyArea = getAnyCompanyAreaFromVector(data.getPlayer().getLocation().toVector());
@@ -538,7 +538,7 @@ public class CompanyComponent
 
     private Object onCompanyManageStock(CommandData data) {
         PlayerEmployee employee;
-        if ((employee = entityUtils.getMetadata(data.getPlayer(), ToxicConstants.PLAYER_EMPLOYEE)).getLevel() != PlayerEmployee.LEVEL_OWNER)
+        if ((employee = metaUtils.getMetadata(data.getPlayer(), ToxicConstants.PLAYER_EMPLOYEE)).getLevel() != PlayerEmployee.LEVEL_OWNER)
             return new ErrorCommandResponse("Nejsi vlastníkem společnosti.");
         if (employee.getCompany().getStockArea() != null)
             return new ErrorCommandResponse("Tvoje firma již má postavený sklad! Aktuálně není možné postavit více než jeden sklad.");

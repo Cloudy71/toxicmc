@@ -6,11 +6,16 @@
 
 package cz.cloudy.minecraft.toxicmc.components.protection.pojo;
 
+import com.cronutils.utils.Preconditions;
 import cz.cloudy.minecraft.core.data_transforming.transformers.BlockLocationToStringTransformer;
 import cz.cloudy.minecraft.core.database.DatabaseEntity;
 import cz.cloudy.minecraft.core.database.annotation.*;
+import cz.cloudy.minecraft.core.database.enums.FetchLevel;
 import cz.cloudy.minecraft.messengersystem.pojo.UserAccount;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+
+import java.util.Set;
 
 /**
  * @author Cloudy
@@ -22,6 +27,7 @@ public class ChestProtection
     @Column("owner")
     @ForeignKey
     @Lazy
+    @Null
     protected UserAccount owner;
 
     @Column("block")
@@ -56,5 +62,20 @@ public class ChestProtection
 
     public void setLocked(boolean locked) {
         this.locked = locked;
+    }
+
+    @Join(table = ChestShare.class, where = "chest_protection.id = :id")
+    public Set<ChestShare> getShares() {
+        return null;
+    }
+
+    public boolean isSharedWith(Player player) {
+        Preconditions.checkNotNull(player, "Player cannot be null");
+        for (ChestShare share : getShares()) {
+            if (player.getUniqueId().equals(share.getUser().getUuid()))
+                return true;
+        }
+
+        return false;
     }
 }
