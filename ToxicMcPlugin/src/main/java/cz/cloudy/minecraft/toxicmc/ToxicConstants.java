@@ -15,6 +15,7 @@ import org.bukkit.ChatColor;
 public abstract class ToxicConstants
         extends MessengerConstants {
     public static final String CHEST_PROTECTION = "chestProtection";
+    public static final String CHEST_SHARE = "chestShare";
     public static final String PLAYER_EMPLOYEE = "playerEmployee";
     public static final String BANNER_ITEM_FRAMES = "bannerItemFrames";
     public static final String ITEM_COMPANY_TOOL_NAME = ChatColor.DARK_AQUA + "Firemní nástroj";

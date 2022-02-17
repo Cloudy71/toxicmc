@@ -18,7 +18,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <aspectj.version>1.9.8.RC1</aspectj.version>
-        <core.version>1.18.4-SNAPSHOT</core.version>
+        <core.version>1.18.5-SNAPSHOT</core.version>
     </properties>
 
     <repositories>
@@ -57,7 +57,7 @@
                 <groupId>cz.cloudy.minecraft</groupId>
                 <artifactId>CloudyCoreLibrary</artifactId>
                 <version>${core.version}</version>
-                <scope>compile</scope>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
