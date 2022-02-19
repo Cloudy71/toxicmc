@@ -14,12 +14,15 @@ import cz.cloudy.minecraft.core.componentsystem.types.CommandData;
 import cz.cloudy.minecraft.messengersystem.ChatComponent;
 import cz.cloudy.minecraft.messengersystem.types.LoginEventData;
 import cz.cloudy.minecraft.toxicmc.components.events.events.GameEvent;
+import cz.cloudy.minecraft.toxicmc.components.events.events.GameEventCovid;
 import cz.cloudy.minecraft.toxicmc.components.events.events.GameEventNone;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
@@ -35,11 +38,13 @@ public class EventComponent
     @Component
     private ChatComponent messenger;
 
-    private GameEvent gameEvent = new GameEventNone();
+    private GameEvent gameEvent;
 
     @Override
     public void onLoad() {
+        gameEvent = new GameEventNone();
         gameEvent.setup(getPlugin(), new String[0]);
+        gameEvent.onStart();
     }
 
     @ActionListener(value = "MessengerSystem.onLogin", priority = 10)
@@ -70,12 +75,15 @@ public class EventComponent
             return;
         }
 
+        if (gameEvent != null)
+            gameEvent.onEnd();
         gameEvent = event;
         String messagePrint = gameEvent.getMessagePrint();
         if (messagePrint != null) {
             messenger.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Nový event:");
             messenger.sendMessage(gameEvent.getMessagePrint());
         }
+        gameEvent.onStart();
     }
 
     @CommandListener("spawn_mob")
@@ -115,4 +123,15 @@ public class EventComponent
     public void onEntityExplodeEvent(EntityExplodeEvent e) {
         gameEvent.onEntityExplodeEvent(e);
     }
+
+    @EventHandler
+    public void onPlayerMoveEvent(PlayerMoveEvent e) {
+        gameEvent.onPlayerMoveEvent(e);
+    }
+
+    @EventHandler
+    public void onPlayerQuitEvent(PlayerQuitEvent e) {
+        gameEvent.onPlayerQuitEvent(e);
+    }
+
 }

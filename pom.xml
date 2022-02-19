@@ -18,10 +18,15 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <aspectj.version>1.9.8.RC1</aspectj.version>
-        <core.version>1.18.5-SNAPSHOT</core.version>
+        <papermc.version>1.18.1-R0.1-SNAPSHOT</papermc.version>
+        <core.version>1.18.6-SNAPSHOT</core.version>
     </properties>
 
     <repositories>
+        <repository>
+            <id>papermc</id>
+            <url>https://papermc.io/repo/repository/maven-public/</url>
+        </repository>
         <repository>
             <id>lan-repository-releases</id>
             <url>http://192.168.100.7:8001/releases</url>
@@ -42,7 +47,13 @@
             <groupId>cz.cloudy.minecraft</groupId>
             <artifactId>CloudyCoreLibrary</artifactId>
             <version>${core.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>${papermc.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
