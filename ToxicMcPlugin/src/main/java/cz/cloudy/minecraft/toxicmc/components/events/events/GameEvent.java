@@ -10,7 +10,10 @@ import org.apache.commons.lang.WordUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.slf4j.Logger;
 
 import java.time.ZonedDateTime;
 
@@ -46,24 +49,24 @@ public abstract class GameEvent
         String nameSpace = " ".repeat(width / 2 - name.length() / 2);
         boolean nameIsEven = name.length() % 2 == 1;
         builder.append(ChatColor.WHITE)
-               .append("-".repeat(width))
-               .append('\n')
-               .append(nameSpace)
-               .append(getColor())
-               .append(name)
-               .append(ChatColor.WHITE)
-               .append(nameIsEven ? " " : "")
-               .append('\n')
-               .append("-".repeat(width))
-               .append('\n');
+                .append("-".repeat(width))
+                .append('\n')
+                .append(nameSpace)
+                .append(getColor())
+                .append(name)
+                .append(ChatColor.WHITE)
+                .append(nameIsEven ? " " : "")
+                .append('\n')
+                .append("-".repeat(width))
+                .append('\n');
         for (String s : description.split("\n")) {
             String wrapped = WordUtils.wrap(s, width, "\n", false);
             for (String sw : wrapped.split("\n")) {
                 builder.append(" ")
-                       .append(ChatColor.ITALIC)
-                       .append(sw)
-                       .append(ChatColor.RESET)
-                       .append('\n');
+                        .append(ChatColor.ITALIC)
+                        .append(sw)
+                        .append(ChatColor.RESET)
+                        .append('\n');
             }
         }
         builder.append("-".repeat(width));
@@ -79,6 +82,12 @@ public abstract class GameEvent
         return plugin;
     }
 
+    public void onStart() {
+    }
+
+    public void onEnd() {
+    }
+
     public void onEntityDamageEvent(EntityDamageEvent e) {
     }
 
@@ -92,5 +101,11 @@ public abstract class GameEvent
     }
 
     public void onEntityExplodeEvent(EntityExplodeEvent e) {
+    }
+
+    public void onPlayerMoveEvent(PlayerMoveEvent e) {
+    }
+
+    public void onPlayerQuitEvent(PlayerQuitEvent e) {
     }
 }
