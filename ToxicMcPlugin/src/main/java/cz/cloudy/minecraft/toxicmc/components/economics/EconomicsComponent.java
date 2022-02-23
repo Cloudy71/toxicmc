@@ -63,13 +63,13 @@ public class EconomicsComponent
     @Component
     private Scoreboard scoreboard;
 
-    //    @Component
+    @Component
     private TransactionManager transactionManager;
 
     @Component
     private MapCanvas mapCanvas;
 
-    //    @Component
+    @Component
     private BannerComponent bannerComponent;
 
     @Component
