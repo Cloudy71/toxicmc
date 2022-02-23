@@ -34,7 +34,7 @@ import java.util.UUID;
 /**
  * @author Cloudy
  */
-//@Component // Temporary disabled
+@Component
 @WorldOnly(filter = "survival")
 public class TransactionManager
         implements IComponent {

@@ -15,7 +15,7 @@ import org.bukkit.event.Listener;
 /**
  * @author Cloudy
  */
-//@Component // Temporary disabled
+@Component
 @WorldOnly(worldNames = {"minigame_test"})
 public class MiniGameTest
         extends MiniGame

@@ -65,7 +65,7 @@ import java.util.UUID;
  * @author Cloudy
  */
 // TODO: Potential bug that creating company area bigger than other company area which is inside the one creating area might hide the one created
-//@Component // Temporary disabled
+@Component
 @WorldOnly(filter = "survival")
 public class CompanyComponent
         implements IComponent, Listener {

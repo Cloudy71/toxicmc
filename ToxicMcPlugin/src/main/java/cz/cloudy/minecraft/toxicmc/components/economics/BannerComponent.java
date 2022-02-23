@@ -44,7 +44,7 @@ import java.util.List;
 /**
  * @author Cloudy
  */
-//@Component // Temporary disabled
+@Component
 @WorldOnly(filter = "survival")
 public class BannerComponent
         implements IComponent, Listener {

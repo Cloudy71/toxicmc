@@ -13,7 +13,7 @@ import org.bukkit.event.Listener;
 /**
  * @author Cloudy
  */
-//@Component // Temporary disabled
+@Component
 public class MiniGamesComponent
         implements IComponent, Listener {
 

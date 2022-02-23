@@ -8,15 +8,13 @@ package cz.cloudy.minecraft.toxicmc.components.economics;
 
 import com.google.common.collect.ImmutableMap;
 import cz.cloudy.minecraft.core.LoggerFactory;
-import cz.cloudy.minecraft.core.componentsystem.annotations.*;
+import cz.cloudy.minecraft.core.componentsystem.annotations.ActionListener;
+import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
+import cz.cloudy.minecraft.core.componentsystem.annotations.WorldOnly;
 import cz.cloudy.minecraft.core.componentsystem.interfaces.IComponent;
-import cz.cloudy.minecraft.core.componentsystem.types.CommandData;
 import cz.cloudy.minecraft.core.database.Database;
 import cz.cloudy.minecraft.core.database.enums.FetchLevel;
-import cz.cloudy.minecraft.core.game.TextUtils;
 import cz.cloudy.minecraft.core.interactions.InteractiveInventory;
-import cz.cloudy.minecraft.core.interactions.InteractiveInventoryObject;
-import cz.cloudy.minecraft.core.interactions.interfaces.IInteractiveInventoryClickHandler;
 import cz.cloudy.minecraft.core.items.ItemStackBuilder;
 import cz.cloudy.minecraft.core.maps.MapCanvas;
 import cz.cloudy.minecraft.core.scoreboard.Scoreboard;
@@ -33,7 +31,6 @@ import cz.cloudy.minecraft.toxicmc.components.economics.enums.PaymentType;
 import cz.cloudy.minecraft.toxicmc.components.economics.pojo.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -48,7 +45,7 @@ import java.util.List;
  */
 // TODO: Fake employees
 // TODO: Daily salary
-//@Component // Temporary disabled
+@Component
 @WorldOnly(filter = "survival")
 public class EconomicsComponent
         implements IComponent {
@@ -66,13 +63,13 @@ public class EconomicsComponent
     @Component
     private Scoreboard scoreboard;
 
-    @Component
+    //    @Component
     private TransactionManager transactionManager;
 
     @Component
     private MapCanvas mapCanvas;
 
-    @Component
+    //    @Component
     private BannerComponent bannerComponent;
 
     @Component
@@ -83,55 +80,15 @@ public class EconomicsComponent
 
     private final DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
-    private InteractiveInventoryObject testInventory;
-    private InteractiveInventoryObject testInventory2;
-
     public BankAccount getBankAccount(Player player) {
         return database.findEntity(BankAccount.class, player.getUniqueId());
     }
 
     @Override
     public void onStart() {
-        testInventory = interactiveInventory.createGlobalInventory(18,
-                                                                   ChatColor.RED + "T" + ChatColor.GREEN + "E" + ChatColor.BLUE + "S" + ChatColor.YELLOW + "T")
-                                            .addButton(itemStackBuilder.create()
-                                                                       .material(Material.PAPER)
-                                                                       .itemMeta(itemMeta -> itemMeta.displayName(TextUtils.get(ChatColor.AQUA + "Test")))
-                                                                       .build(), 4,
-                                                       (IInteractiveInventoryClickHandler) player -> logger.info("CLICKED EVENT BY {}", player))
-                                            .addButton(itemStackBuilder.create()
-                                                                       .material(Material.PAPER)
-                                                                       .itemMeta(itemMeta -> itemMeta.displayName(TextUtils.get(ChatColor.MAGIC + "UwU")))
-                                                                       .build(), 13, (IInteractiveInventoryClickHandler) player -> {
-                                                logger.info("OPENED NEW INVENTORY2 FOR {}", player);
-                                                testInventory2.open(player);
-                                            });
-
-//        ItemStack diamond = new ItemStack(Material.DIAMOND);
-//        diamond.editMeta(itemMeta -> itemMeta.displayName(net.kyori.adventure.text.Component.text(ChatColor.DARK_PURPLE + "CLICK HERE?")));
-        testInventory2 = interactiveInventory.createGlobalInventory(9, ChatColor.GOLD + "" + ChatColor.BOLD + "Nested inventory")
-                                             .addButton(itemStackBuilder.create()
-                                                                        .material(Material.DIAMOND)
-                                                                        .itemMeta(itemMeta -> itemMeta.displayName(
-                                                                                TextUtils.get(ChatColor.DARK_PURPLE + "CLICK HERE?")))
-                                                                        .build(), 4, (IInteractiveInventoryClickHandler) player -> {
-                                                 logger.info("OPENED NEW INVENTORY FOR {}", player);
-                                                 testInventory.open(player);
-                                             })
-                                             .addButton(itemStackBuilder.create()
-                                                                        .material(Material.APPLE)
-                                                                        .itemMeta(itemMeta -> itemMeta.displayName(
-                                                                                TextUtils.get(ChatColor.DARK_RED + "Nabídni si chlapečku")))
-                                                                        .build(),
-                                                        1, (IInteractiveInventoryClickHandler) p -> p.setHealth(0));
     }
 
-    @CommandListener("test")
-    private void onTestCommand(CommandData data) {
-        testInventory.open(data.getPlayer());
-    }
-
-    @Cron("0 0 0 * * *")
+    //    @Cron("0 0 0 * * *")
     private void everydayPays() {
         for (Expense expense : database.findEntities(
                 Expense.class,
