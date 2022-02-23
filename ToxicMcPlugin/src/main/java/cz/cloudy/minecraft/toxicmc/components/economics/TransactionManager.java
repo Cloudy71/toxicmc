@@ -9,6 +9,7 @@ package cz.cloudy.minecraft.toxicmc.components.economics;
 import com.google.common.base.Preconditions;
 import cz.cloudy.minecraft.core.LoggerFactory;
 import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
+import cz.cloudy.minecraft.core.componentsystem.annotations.WorldOnly;
 import cz.cloudy.minecraft.core.componentsystem.interfaces.IComponent;
 import cz.cloudy.minecraft.core.database.Database;
 import cz.cloudy.minecraft.core.game.TextUtils;
@@ -33,7 +34,8 @@ import java.util.UUID;
 /**
  * @author Cloudy
  */
-@Component
+//@Component // Temporary disabled
+@WorldOnly(filter = "survival")
 public class TransactionManager
         implements IComponent {
     private static final Logger logger = LoggerFactory.getLogger(TransactionManager.class);

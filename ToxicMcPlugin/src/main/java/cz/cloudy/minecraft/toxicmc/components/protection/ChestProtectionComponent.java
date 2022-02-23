@@ -9,9 +9,7 @@ package cz.cloudy.minecraft.toxicmc.components.protection;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import cz.cloudy.minecraft.core.LoggerFactory;
-import cz.cloudy.minecraft.core.componentsystem.annotations.CheckCondition;
-import cz.cloudy.minecraft.core.componentsystem.annotations.CommandListener;
-import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
+import cz.cloudy.minecraft.core.componentsystem.annotations.*;
 import cz.cloudy.minecraft.core.componentsystem.interfaces.IComponent;
 import cz.cloudy.minecraft.core.componentsystem.types.CommandData;
 import cz.cloudy.minecraft.core.componentsystem.types.command_responses.ErrorCommandResponse;
@@ -48,6 +46,7 @@ import java.util.UUID;
  * @author Cloudy
  */
 @Component
+@WorldOnly(filter = "survival")
 public class ChestProtectionComponent
         implements IComponent, Listener {
     private static final Logger logger = LoggerFactory.getLogger(ChestProtectionComponent.class);
@@ -154,7 +153,7 @@ public class ChestProtectionComponent
         if (action.equals("share"))
             return onChestShare(newCommandData);
         if (action.equals("unshare"))
-            return onChestUnshare(newCommandData);
+            return onChestUnShare(newCommandData);
 
         return new InfoCommandResponse("Neznámý požadavek.");
     }
@@ -202,10 +201,10 @@ public class ChestProtectionComponent
                 "chest_protection = :id",
                 ImmutableMap.of("id", chestProtection.getId())
         );
+        protections.remove(chestProtection);
         chestProtection.delete();
         block.removeMetadata(ToxicConstants.CHEST_PROTECTION, getPlugin());
         return new InfoCommandResponse("Truhla byla odemčena.");
-//        return new InfoCommandResponse("Tato truhla je již uzamčena tebou.");
     }
 
 
@@ -247,7 +246,7 @@ public class ChestProtectionComponent
         return new InfoCommandResponse("Truhle bylo nastaveno sdílení.");
     }
 
-    private Object onChestUnshare(CommandData data) {
+    private Object onChestUnShare(CommandData data) {
         if (data.arguments().length != 1)
             return new InfoCommandResponse("Nebyl zadán uživatel k odbrání práv.");
 

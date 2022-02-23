@@ -8,10 +8,7 @@ package cz.cloudy.minecraft.toxicmc.components.economics;
 
 import com.google.common.collect.ImmutableMap;
 import cz.cloudy.minecraft.core.LoggerFactory;
-import cz.cloudy.minecraft.core.componentsystem.annotations.ActionListener;
-import cz.cloudy.minecraft.core.componentsystem.annotations.CommandListener;
-import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
-import cz.cloudy.minecraft.core.componentsystem.annotations.Cron;
+import cz.cloudy.minecraft.core.componentsystem.annotations.*;
 import cz.cloudy.minecraft.core.componentsystem.interfaces.IComponent;
 import cz.cloudy.minecraft.core.componentsystem.types.CommandData;
 import cz.cloudy.minecraft.core.database.Database;
@@ -51,7 +48,8 @@ import java.util.List;
  */
 // TODO: Fake employees
 // TODO: Daily salary
-@Component
+//@Component // Temporary disabled
+@WorldOnly(filter = "survival")
 public class EconomicsComponent
         implements IComponent {
     private static final Logger logger = LoggerFactory.getLogger(EconomicsComponent.class);

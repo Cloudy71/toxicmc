@@ -11,9 +11,11 @@ import cz.cloudy.minecraft.core.LoggerFactory;
 import cz.cloudy.minecraft.core.await.Await;
 import cz.cloudy.minecraft.core.await.AwaitConsumer;
 import cz.cloudy.minecraft.core.await.AwaitTimedConsumer;
+import cz.cloudy.minecraft.core.componentsystem.ComponentCache;
 import cz.cloudy.minecraft.core.componentsystem.annotations.Cached;
 import cz.cloudy.minecraft.core.componentsystem.annotations.CommandListener;
 import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
+import cz.cloudy.minecraft.core.componentsystem.annotations.WorldOnly;
 import cz.cloudy.minecraft.core.componentsystem.interfaces.IComponent;
 import cz.cloudy.minecraft.core.componentsystem.types.CommandData;
 import cz.cloudy.minecraft.core.componentsystem.types.command_responses.ErrorCommandResponse;
@@ -63,7 +65,8 @@ import java.util.UUID;
  * @author Cloudy
  */
 // TODO: Potential bug that creating company area bigger than other company area which is inside the one creating area might hide the one created
-@Component
+//@Component // Temporary disabled
+@WorldOnly(filter = "survival")
 public class CompanyComponent
         implements IComponent, Listener {
     private static final Logger logger = LoggerFactory.getLogger(CompanyComponent.class);
@@ -86,7 +89,10 @@ public class CompanyComponent
     @Component
     private Particles particles;
 
-    @Cached
+    @Component
+    private ComponentCache componentCache;
+
+    @Cached(id = "companyArea", entityReplicationCheck = true)
     public CompanyArea getSelectedCompanyAreaFromVector(Company company, Vector vector) {
         return database.findEntity(
                 CompanyArea.class,
@@ -101,7 +107,7 @@ public class CompanyComponent
         );
     }
 
-    @Cached
+    @Cached(id = "companyArea", maxSaves = 10, entityReplicationCheck = true)
     public CompanyArea getAnyCompanyAreaFromVector(Vector vector) {
         return database.findEntity(
                 CompanyArea.class,
@@ -115,7 +121,7 @@ public class CompanyComponent
         );
     }
 
-    @Cached
+    @Cached(id = "companyArea", maxSaves = 10, entityReplicationCheck = true)
     public CompanyArea getAnyCompanyAreaFromChunkVector(Int2 vector) {
         return database.findEntity(
                 CompanyArea.class,
@@ -168,7 +174,7 @@ public class CompanyComponent
                 }
         );
 
-        player.getInventory().setItemInMainHand(axe);
+//        player.getInventory().setItemInMainHand(axe);
         return axe;
     }
 

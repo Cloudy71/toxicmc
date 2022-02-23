@@ -31,6 +31,7 @@ import java.util.Arrays;
  * @author Cloudy
  */
 @Component
+@WorldOnly(filter = "survival")
 public class EventComponent
         implements IComponent, Listener {
     private static final Logger logger = LoggerFactory.getLogger(EventComponent.class);
