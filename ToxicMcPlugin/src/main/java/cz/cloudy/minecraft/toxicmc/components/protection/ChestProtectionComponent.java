@@ -9,7 +9,10 @@ package cz.cloudy.minecraft.toxicmc.components.protection;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import cz.cloudy.minecraft.core.LoggerFactory;
-import cz.cloudy.minecraft.core.componentsystem.annotations.*;
+import cz.cloudy.minecraft.core.componentsystem.annotations.CheckCondition;
+import cz.cloudy.minecraft.core.componentsystem.annotations.CommandListener;
+import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
+import cz.cloudy.minecraft.core.componentsystem.annotations.WorldOnly;
 import cz.cloudy.minecraft.core.componentsystem.interfaces.IComponent;
 import cz.cloudy.minecraft.core.componentsystem.types.CommandData;
 import cz.cloudy.minecraft.core.componentsystem.types.command_responses.ErrorCommandResponse;
@@ -19,6 +22,7 @@ import cz.cloudy.minecraft.core.database.Database;
 import cz.cloudy.minecraft.core.database.enums.FetchLevel;
 import cz.cloudy.minecraft.core.game.ChestUtils;
 import cz.cloudy.minecraft.core.game.MetaUtils;
+import cz.cloudy.minecraft.core.game.TextUtils;
 import cz.cloudy.minecraft.messengersystem.MessengerComponent;
 import cz.cloudy.minecraft.messengersystem.pojo.UserAccount;
 import cz.cloudy.minecraft.toxicmc.ToxicConstants;
@@ -33,14 +37,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.slf4j.Logger;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Cloudy
@@ -94,7 +97,7 @@ public class ChestProtectionComponent
         return chestBlock.getLocation();
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     private void onBlockBreakEvent(BlockBreakEvent e) {
         if (!(e.getBlock().getState() instanceof Chest))
             return;
@@ -103,7 +106,7 @@ public class ChestProtectionComponent
         if (!chestBlock.hasMetadata(ToxicConstants.CHEST_PROTECTION))
             return;
 
-        ChestProtection protection = (ChestProtection) chestBlock.getMetadata(ToxicConstants.CHEST_PROTECTION).get(0).value();
+        ChestProtection protection = metaUtils.getMetadata(chestBlock, ToxicConstants.CHEST_PROTECTION);
         Preconditions.checkNotNull(protection, "ChestProtection is null");
         if (protection.getOwner() == null || !protection.getOwner().getUuid().equals(e.getPlayer().getUniqueId())) {
             e.setCancelled(true);
@@ -116,22 +119,42 @@ public class ChestProtectionComponent
         e.getPlayer().sendMessage(ChatColor.AQUA + "Protekce byla odebrána.");
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
+    private void onEntityExplodeEvent(EntityExplodeEvent e) {
+        List<Block> removeList = new ArrayList<>();
+        for (Block block : e.blockList()) {
+            if (!(block.getState() instanceof Chest))
+                continue;
+
+            Block chestBlock = chestUtils.getBaseBlock(block);
+            Preconditions.checkNotNull(chestBlock);
+            if (!chestBlock.hasMetadata(ToxicConstants.CHEST_PROTECTION))
+                continue;
+
+            ChestProtection protection = metaUtils.getMetadata(chestBlock, ToxicConstants.CHEST_PROTECTION);
+            Preconditions.checkNotNull(protection, "ChestProtection is null");
+            removeList.add(block);
+        }
+        e.blockList().removeAll(removeList);
+    }
+
+    @EventHandler(ignoreCancelled = true)
     private void onPlayerInteractEvent(PlayerInteractEvent e) {
         Block chestBlock;
         if (!e.hasBlock() || e.getClickedBlock() == null || (chestBlock = chestUtils.getBaseBlock(e.getClickedBlock())) == null ||
-                !chestBlock.hasMetadata(ToxicConstants.CHEST_PROTECTION))
+            !chestBlock.hasMetadata(ToxicConstants.CHEST_PROTECTION))
             return;
 
-        ChestProtection protection = (ChestProtection) chestBlock.getMetadata(ToxicConstants.CHEST_PROTECTION).get(0).value();
+        ChestProtection protection = metaUtils.getMetadata(chestBlock, ToxicConstants.CHEST_PROTECTION);
         Preconditions.checkNotNull(protection, "ChestProtection is null");
-        if (!protection.isLocked() || (protection.getOwner() != null && protection.getOwner().getUuid().equals(e.getPlayer().getUniqueId())) ||
-                protection.isSharedWith(e.getPlayer()))
+        if (/*!protection.isLocked() || */(protection.getOwner() != null && protection.getOwner().getUuid().equals(e.getPlayer().getUniqueId())) ||
+                                          protection.isSharedWith(e.getPlayer()))
             return;
 
         e.setCancelled(true);
         e.getPlayer().sendMessage(ChatColor.AQUA + "Tato truhla je uzamčená.");
     }
+
 
     @CommandListener("chest")
     @CheckCondition(CheckCondition.SENDER_IS_PLAYER)
@@ -175,9 +198,14 @@ public class ChestProtectionComponent
         ChestProtection chestProtection = new ChestProtection();
         chestProtection.setOwner(messenger.getUserAccount(data.getPlayer()));
         chestProtection.setBlock(block);
+        chestProtection.setLocked(true);
         chestProtection.save();
         protections.add(chestProtection);
         block.setMetadata(ToxicConstants.CHEST_PROTECTION, new FixedMetadataValue(getPlugin(), chestProtection));
+        if (block.getState() instanceof Chest chest) {
+            chest.customName(TextUtils.get(data.getPlayer().getName() + "'s Chest"));
+            chest.update();
+        }
 
         return new InfoCommandResponse("Truhla byla úspěšně uzamčena.");
     }
@@ -204,6 +232,10 @@ public class ChestProtectionComponent
         protections.remove(chestProtection);
         chestProtection.delete();
         block.removeMetadata(ToxicConstants.CHEST_PROTECTION, getPlugin());
+        if (block.getState() instanceof Chest chest) {
+            chest.customName(null);
+            chest.update();
+        }
         return new InfoCommandResponse("Truhla byla odemčena.");
     }
 

@@ -33,6 +33,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ import java.util.List;
 @Component
 @WorldOnly(filter = "survival")
 public class EconomicsComponent
-        implements IComponent {
+        implements IComponent, Listener {
     private static final Logger logger = LoggerFactory.getLogger(EconomicsComponent.class);
 
     @Component
