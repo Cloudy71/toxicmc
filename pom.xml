@@ -19,7 +19,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <aspectj.version>1.9.8.RC1</aspectj.version>
         <papermc.version>1.18.1-R0.1-SNAPSHOT</papermc.version>
-        <core.version>1.18.7-SNAPSHOT</core.version>
+        <core.version>1.18.7.1-SNAPSHOT</core.version>
     </properties>
 
     <repositories>
