@@ -16,6 +16,7 @@ import cz.cloudy.minecraft.core.game.TextUtils;
 import cz.cloudy.minecraft.core.interactions.InteractiveInventory;
 import cz.cloudy.minecraft.core.interactions.interfaces.IInteractiveInventoryClickHandler;
 import cz.cloudy.minecraft.core.items.ItemStackBuilder;
+import cz.cloudy.minecraft.toxicmc.ToxicConstants;
 import cz.cloudy.minecraft.toxicmc.components.economics.enums.PaymentType;
 import cz.cloudy.minecraft.toxicmc.components.economics.pojo.BankAccount;
 import cz.cloudy.minecraft.toxicmc.components.economics.pojo.BankTransaction;
@@ -35,7 +36,7 @@ import java.util.UUID;
  * @author Cloudy
  */
 @Component
-@WorldOnly(filter = "survival")
+@WorldOnly(filter = ToxicConstants.WORLDS_ECONOMY)
 public class TransactionManager
         implements IComponent {
     private static final Logger logger = LoggerFactory.getLogger(TransactionManager.class);
@@ -46,7 +47,7 @@ public class TransactionManager
     private Database database;
 
     @Component
-    private EconomicsComponent economics;
+    private EconomyComponent economy;
 
     @Component
     private InteractiveInventory interactiveInventory;
@@ -167,37 +168,37 @@ public class TransactionManager
             textList.add(TextUtils.get(ChatColor.WHITE + txt));
         }
         ItemStack green = itemStackBuilder.create()
-                                          .material(hasBalance ? Material.GREEN_STAINED_GLASS_PANE : Material.BLACK_STAINED_GLASS_PANE)
-                                          .itemMeta(itemMeta -> itemMeta.displayName(
-                                                  TextUtils.get((hasBalance ? ChatColor.DARK_GREEN : ChatColor.GRAY) + "Přijmout")))
-                                          .build();
+                .material(hasBalance ? Material.GREEN_STAINED_GLASS_PANE : Material.BLACK_STAINED_GLASS_PANE)
+                .itemMeta(itemMeta -> itemMeta.displayName(
+                        TextUtils.get((hasBalance ? ChatColor.DARK_GREEN : ChatColor.GRAY) + "Přijmout")))
+                .build();
         ItemStack paper = itemStackBuilder.create()
-                                          .material(Material.PAPER)
-                                          .itemMeta(itemMeta -> {
-                                              itemMeta.displayName(TextUtils.get(
-                                                      ChatColor.GRAY + "Transakce"));
+                .material(Material.PAPER)
+                .itemMeta(itemMeta -> {
+                    itemMeta.displayName(TextUtils.get(
+                            ChatColor.GRAY + "Transakce"));
 //                                              List<net.kyori.adventure.text.Component> lore = new ArrayList<>(List.of(
 //                                                      TextUtils.get(ChatColor.WHITE + text),
 //                                                      TextUtils.get(" ")
 //                                              ));
-                                              List<net.kyori.adventure.text.Component> lore = new ArrayList<>(textList);
-                                              lore.add(TextUtils.get(" "));
-                                              if (targetName != null)
-                                                  lore.add(TextUtils.get(ChatColor.GRAY + "Cíl: " + ChatColor.WHITE + targetName));
-                                              lore.addAll(List.of(
-                                                      TextUtils.get(ChatColor.GRAY + "Cena: " + ChatColor.WHITE + printMoney(amount)),
-                                                      TextUtils.get(" "),
-                                                      TextUtils.get(ChatColor.GRAY + "Zdroj: " + ChatColor.WHITE + sourceName),
-                                                      TextUtils.get(ChatColor.GRAY + "Zbytek: " + (hasBalance ? ChatColor.WHITE : ChatColor.RED) +
-                                                                    printMoney(balance - amount))
-                                              ));
-                                              itemMeta.lore(lore);
-                                          })
-                                          .build();
+                    List<net.kyori.adventure.text.Component> lore = new ArrayList<>(textList);
+                    lore.add(TextUtils.get(" "));
+                    if (targetName != null)
+                        lore.add(TextUtils.get(ChatColor.GRAY + "Cíl: " + ChatColor.WHITE + targetName));
+                    lore.addAll(List.of(
+                            TextUtils.get(ChatColor.GRAY + "Cena: " + ChatColor.WHITE + printMoney(amount)),
+                            TextUtils.get(" "),
+                            TextUtils.get(ChatColor.GRAY + "Zdroj: " + ChatColor.WHITE + sourceName),
+                            TextUtils.get(ChatColor.GRAY + "Zbytek: " + (hasBalance ? ChatColor.WHITE : ChatColor.RED) +
+                                    printMoney(balance - amount))
+                    ));
+                    itemMeta.lore(lore);
+                })
+                .build();
         ItemStack red = itemStackBuilder.create()
-                                        .material(Material.RED_STAINED_GLASS_PANE)
-                                        .itemMeta(itemMeta -> itemMeta.displayName(TextUtils.get(ChatColor.DARK_RED + "Zamítnout")))
-                                        .build();
+                .material(Material.RED_STAINED_GLASS_PANE)
+                .itemMeta(itemMeta -> itemMeta.displayName(TextUtils.get(ChatColor.DARK_RED + "Zamítnout")))
+                .build();
         IInteractiveInventoryClickHandler accept = p -> {
             // TODO: Calculate amount etc...
             pay(source, target, paymentType.getMessage(), amount);
@@ -211,15 +212,15 @@ public class TransactionManager
             player.sendMessage(ChatColor.DARK_RED + "Transakce byla ukončena.");
         };
         interactiveInventory.openOnetimeInventory(9, title, player)
-                            .addButton(green, 0, accept)
-                            .addButton(green, 1, accept)
-                            .addButton(green, 2, accept)
-                            .addButton(green, 3, accept)
-                            .addButton(paper, 4, null)
-                            .addButton(red, 5, reject)
-                            .addButton(red, 6, reject)
-                            .addButton(red, 7, reject)
-                            .addButton(red, 8, reject);
+                .addButton(green, 0, accept)
+                .addButton(green, 1, accept)
+                .addButton(green, 2, accept)
+                .addButton(green, 3, accept)
+                .addButton(paper, 4, null)
+                .addButton(red, 5, reject)
+                .addButton(red, 6, reject)
+                .addButton(red, 7, reject)
+                .addButton(red, 8, reject);
     }
 
     public void confirm(Player player, UUID target, int amount, String text, PaymentType paymentType, IInteractiveInventoryClickHandler acceptHandler,

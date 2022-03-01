@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * @author Cloudy, Háně
  */
 @Component
-@WorldOnly(filter = "survival")
+@WorldOnly(filter = ToxicConstants.WORLDS_ECONOMY)
 public class AnimalQualityCalculator extends AbstractQualityCalculator.AbstractEntityQualityCalculator implements IComponent {
     private static final Logger logger = LoggerFactory.getLogger(AnimalQualityCalculator.class);
 

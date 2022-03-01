@@ -45,7 +45,7 @@ import java.util.List;
  * @author Cloudy
  */
 @Component
-@WorldOnly(filter = "survival")
+@WorldOnly(filter = ToxicConstants.WORLDS_ECONOMY)
 public class BannerComponent
         implements IComponent, Listener {
     private static final Logger logger = LoggerFactory.getLogger(BannerComponent.class);

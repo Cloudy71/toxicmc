@@ -49,7 +49,7 @@ import java.util.*;
  * @author Cloudy
  */
 @Component
-@WorldOnly(filter = "survival")
+@WorldOnly(filter = ToxicConstants.WORLDS_SURVIVAL)
 public class ChestProtectionComponent
         implements IComponent, Listener {
     private static final Logger logger = LoggerFactory.getLogger(ChestProtectionComponent.class);

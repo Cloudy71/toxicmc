@@ -66,7 +66,7 @@ import java.util.UUID;
  */
 // TODO: Potential bug that creating company area bigger than other company area which is inside the one creating area might hide the one created
 @Component
-@WorldOnly(filter = "survival")
+@WorldOnly(filter = ToxicConstants.WORLDS_ECONOMY)
 public class CompanyComponent
         implements IComponent, Listener {
     private static final Logger logger = LoggerFactory.getLogger(CompanyComponent.class);

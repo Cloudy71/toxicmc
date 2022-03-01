@@ -37,7 +37,7 @@ import java.util.*;
  * @author Háně
  */
 @Component
-@WorldOnly(filter = "survival")
+@WorldOnly(filter = ToxicConstants.WORLDS_ECONOMY)
 public class QualityComponent implements IComponent, Listener {
     private static final Logger logger = LoggerFactory.getLogger(QualityComponent.class);
 

@@ -15,15 +15,20 @@ import org.bukkit.ChatColor;
  */
 public abstract class ToxicConstants
         extends MessengerConstants {
-    @WorldFilter(name = "survival")
-    public static final String[] SURVIVAL_WORLDS = {"world", "world_nether", "world_the_end"};
+    public static final String WORLDS_SURVIVAL = "survival";
+    public static final String WORLDS_ECONOMY = "economy";
 
-    public static final String CHEST_PROTECTION       = "chestProtection";
-    public static final String CHEST_SHARE            = "chestShare";
-    public static final String PLAYER_EMPLOYEE        = "playerEmployee";
-    public static final String BANNER_ITEM_FRAMES     = "bannerItemFrames";
+    @WorldFilter(name = WORLDS_SURVIVAL)
+    public static final String[] SURVIVAL_WORLDS = {"world", "world_nether", "world_the_end"};
+    @WorldFilter(name = WORLDS_ECONOMY)
+    public static final String[] ECONOMY_WORLDS = {"economy"};
+
+    public static final String CHEST_PROTECTION = "chestProtection";
+    public static final String CHEST_SHARE = "chestShare";
+    public static final String PLAYER_EMPLOYEE = "playerEmployee";
+    public static final String BANNER_ITEM_FRAMES = "bannerItemFrames";
     public static final String ITEM_COMPANY_TOOL_NAME = ChatColor.DARK_AQUA + "Firemní nástroj";
-    public static final String ITEM_LORE_USAGE_AREA   = ChatColor.GOLD + "Tvoření areálu";
-    public static final String ITEM_LORE_USAGE_STOCK  = ChatColor.GOLD + "Tvoření skladu";
+    public static final String ITEM_LORE_USAGE_AREA = ChatColor.GOLD + "Tvoření areálu";
+    public static final String ITEM_LORE_USAGE_STOCK = ChatColor.GOLD + "Tvoření skladu";
     public static final String ITEM_LORE_QUALITY = ChatColor.GREEN + "Kvalita: ";
 }

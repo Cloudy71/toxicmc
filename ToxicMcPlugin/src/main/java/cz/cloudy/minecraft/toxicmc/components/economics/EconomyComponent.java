@@ -47,10 +47,10 @@ import java.util.List;
 // TODO: Fake employees
 // TODO: Daily salary
 @Component
-@WorldOnly(filter = "survival")
-public class EconomicsComponent
+@WorldOnly(filter = ToxicConstants.WORLDS_ECONOMY)
+public class EconomyComponent
         implements IComponent, Listener {
-    private static final Logger logger = LoggerFactory.getLogger(EconomicsComponent.class);
+    private static final Logger logger = LoggerFactory.getLogger(EconomyComponent.class);
 
     @Component
     private Database database;

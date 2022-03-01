@@ -4,6 +4,7 @@ import cz.cloudy.minecraft.core.LoggerFactory;
 import cz.cloudy.minecraft.core.componentsystem.annotations.Component;
 import cz.cloudy.minecraft.core.componentsystem.annotations.WorldOnly;
 import cz.cloudy.minecraft.core.componentsystem.types.command_responses.InfoCommandResponse;
+import cz.cloudy.minecraft.toxicmc.ToxicConstants;
 import cz.cloudy.minecraft.toxicmc.components.economics.QualityComponent;
 import org.bukkit.entity.Item;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -14,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
  * @author Cloudy, Háně
  */
 @Component
-@WorldOnly(filter = "survival")
+@WorldOnly(filter = ToxicConstants.WORLDS_ECONOMY)
 public class OreQualityCalculator extends AbstractQualityCalculator.AbstractBlockQualityCalculator {
     @Override
     public void blockDropItemEvent(BlockDropItemEvent e) {
